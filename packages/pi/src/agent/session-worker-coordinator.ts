@@ -1,5 +1,5 @@
-import { Agent } from "@mariozechner/pi-agent-core";
-import type { AgentEvent, AgentTool, StreamFn } from "@mariozechner/pi-agent-core";
+import { Agent } from "@earendil-works/pi-agent-core";
+import type { AgentEvent, AgentTool, StreamFn } from "@earendil-works/pi-agent-core";
 import {
   BusyRuntimeError,
   StreamInterruptedRuntimeError,

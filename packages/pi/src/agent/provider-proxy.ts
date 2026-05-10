@@ -1,8 +1,8 @@
-import type { Api, Model, SimpleStreamOptions } from "@mariozechner/pi-ai";
+import type { Api, Model, SimpleStreamOptions } from "@earendil-works/pi-ai";
 import { getProxyConfig } from "@webaura/pi/proxy/settings";
 import { buildProxiedUrl } from "@webaura/pi/proxy/url";
 
-type StreamSimple = (typeof import("@mariozechner/pi-ai"))["streamSimple"];
+type StreamSimple = (typeof import("@earendil-works/pi-ai"))["streamSimple"];
 
 export function shouldUseProxyForProvider(provider: string, apiKey: string): boolean {
   switch (provider.toLowerCase()) {
@@ -44,7 +44,7 @@ export function createProxyAwareStreamFn() {
     context: Parameters<StreamSimple>[1],
     options?: SimpleStreamOptions,
   ) => {
-    const { streamSimple } = await import("@mariozechner/pi-ai");
+    const { streamSimple } = await import("@earendil-works/pi-ai");
     const apiKey = options?.apiKey;
 
     if (!apiKey) {

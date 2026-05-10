@@ -1,5 +1,5 @@
-import type { AgentMessage, AgentState, AgentTool } from "@mariozechner/pi-agent-core";
-import type { Message, Model } from "@mariozechner/pi-ai";
+import type { AgentMessage, AgentState, AgentTool } from "@earendil-works/pi-agent-core";
+import type { Message, Model } from "@earendil-works/pi-ai";
 import { SYSTEM_PROMPT } from "@webaura/pi/agent/system-prompt";
 import type {
   AssistantMessage,

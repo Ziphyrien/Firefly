@@ -1,4 +1,4 @@
-import type { Api, KnownProvider, Model, Usage as PiUsage } from "@mariozechner/pi-ai";
+import type { Api, KnownProvider, Model, Usage as PiUsage } from "@earendil-works/pi-ai";
 
 export type { KnownProvider };
 
@@ -15,7 +15,7 @@ export interface ProviderGroupDefinition {
 }
 
 export type ApiType = Api;
-export type { ThinkingLevel } from "@mariozechner/pi-agent-core";
+export type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 
 export type ModelInput = "image" | "text";
 

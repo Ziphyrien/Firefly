@@ -1,4 +1,4 @@
-import { getProviders as getRegistryProviders } from "@mariozechner/pi-ai";
+import { getProviders as getRegistryProviders } from "@earendil-works/pi-ai";
 import { isOAuthProviderId, type OAuthProviderId } from "@webaura/pi/auth/oauth-types";
 import type {
   KnownProvider,

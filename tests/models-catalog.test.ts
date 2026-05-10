@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { getModels as getRegistryModels } from "@mariozechner/pi-ai";
+import { getModels as getRegistryModels } from "@earendil-works/pi-ai";
 import { createEmptyUsage } from "@/types/models";
 import { serializeOAuthCredentials } from "@/auth/oauth-types";
 import {

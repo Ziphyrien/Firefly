@@ -1,4 +1,4 @@
-import type { Message } from "@mariozechner/pi-ai";
+import type { Message } from "@earendil-works/pi-ai";
 import type { MessageRow } from "@webaura/db";
 import type { ChatMessage, ToolCall, ToolResultMessage } from "@webaura/pi/types/chat";
 

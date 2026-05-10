@@ -2,8 +2,8 @@ import {
   clampThinkingLevel as clampModelThinkingLevel,
   getSupportedThinkingLevels,
   type Model,
-} from "@mariozechner/pi-ai";
-import type { ThinkingLevel } from "@mariozechner/pi-agent-core";
+} from "@earendil-works/pi-ai";
+import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 
 export function getAvailableThinkingLevels(model: Model<any> | null | undefined): ThinkingLevel[] {
   if (!model) {

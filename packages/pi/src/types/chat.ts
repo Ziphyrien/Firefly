@@ -5,9 +5,9 @@ import type {
   ThinkingContent as PiThinkingContent,
   ToolResultMessage as PiToolResultMessage,
   UserMessage as PiUserMessage,
-} from "@mariozechner/pi-ai";
+} from "@earendil-works/pi-ai";
 import type { JsonValue } from "@webaura/pi/types/common";
-export type { StopReason } from "@mariozechner/pi-ai";
+export type { StopReason } from "@earendil-works/pi-ai";
 
 export type TextContent = PiTextContent;
 export type ImageContent = PiImageContent;

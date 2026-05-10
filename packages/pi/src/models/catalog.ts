@@ -1,5 +1,8 @@
 // App-facing catalog helpers layered on the shared pi-ai registry.
-import { getModel as getRegistryModel, getModels as getRegistryModels } from "@mariozechner/pi-ai";
+import {
+  getModel as getRegistryModel,
+  getModels as getRegistryModels,
+} from "@earendil-works/pi-ai";
 import type { ModelDefinition, ProviderGroupId, ProviderId, Usage } from "@webaura/pi/types/models";
 import { isOAuthCredentials, parseOAuthCredentials } from "@webaura/pi/auth/oauth-types";
 import {

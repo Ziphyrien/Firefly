@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import type { AgentTool } from "@mariozechner/pi-agent-core";
-import type { Message } from "@mariozechner/pi-ai";
+import type { AgentTool } from "@earendil-works/pi-agent-core";
+import type { Message } from "@earendil-works/pi-ai";
 import { deleteAllLocalData, getSession, getSessionMessages, getSessionRuntime } from "@webaura/db";
 import type { AssistantMessage } from "@/types/chat";
 import type { SessionData } from "@/types/storage";
@@ -56,7 +56,7 @@ vi.mock("@/auth/resolve-api-key", () => ({
   resolveApiKeyForProvider: vi.fn(async () => undefined),
 }));
 
-vi.mock("@mariozechner/pi-agent-core", () => ({
+vi.mock("@earendil-works/pi-agent-core", () => ({
   Agent: class {
     state = agentState;
     sessionId = "";

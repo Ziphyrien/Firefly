@@ -1,5 +1,5 @@
-import * as PiAi from "@mariozechner/pi-ai";
-import type { StreamFn } from "@mariozechner/pi-agent-core";
+import * as PiAi from "@earendil-works/pi-ai";
+import type { StreamFn } from "@earendil-works/pi-agent-core";
 import type { AssistantMessage, StopReason, ToolCall } from "@webaura/pi/types/chat";
 import type { ModelDefinition, ProviderId } from "@webaura/pi/types/models";
 import { SYSTEM_PROMPT } from "@webaura/pi/agent/system-prompt";

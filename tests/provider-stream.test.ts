@@ -1,8 +1,8 @@
 import { Type } from "typebox";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { createAssistantMessageEventStream } from "@mariozechner/pi-ai";
-import type * as PiAi from "@mariozechner/pi-ai";
-import type { AssistantMessage as PiAssistantMessage } from "@mariozechner/pi-ai";
+import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
+import type * as PiAi from "@earendil-works/pi-ai";
+import type { AssistantMessage as PiAssistantMessage } from "@earendil-works/pi-ai";
 import { getModel } from "@/models/catalog";
 import { createEmptyUsage } from "@/types/models";
 import { buildProxiedUrl } from "@/proxy/url";
