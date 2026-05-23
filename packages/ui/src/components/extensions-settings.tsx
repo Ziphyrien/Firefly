@@ -2,6 +2,16 @@ import * as React from "react";
 import { toast } from "sonner";
 import { getExtensionEnabled, setExtensionEnabled } from "@webaura/pi/extensions/settings";
 import type { ExtensionManifest } from "@webaura/pi/extensions/types";
+import { Alert, AlertDescription } from "@webaura/ui/components/alert";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@webaura/ui/components/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@webaura/ui/components/empty";
 import { Label } from "@webaura/ui/components/label";
 import { Switch } from "@webaura/ui/components/switch";
 
@@ -26,33 +36,35 @@ function ExtensionCard(props: {
   const switchId = `extension-${item.manifest.id}`;
 
   return (
-    <div className="rounded-none border border-foreground/10 p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Label htmlFor={switchId}>{item.manifest.name}</Label>
-            <span className="text-[11px] text-muted-foreground">v{item.manifest.version}</span>
-          </div>
-          <p className="text-xs text-muted-foreground">{item.manifest.description}</p>
-        </div>
-        <Switch
-          checked={item.enabled}
-          disabled={props.disabled}
-          id={switchId}
-          onCheckedChange={(enabled) => {
-            void props.onToggle(item.manifest.id, enabled);
-          }}
-        />
-      </div>
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle className="flex flex-wrap items-center gap-2">
+          <Label htmlFor={switchId}>{item.manifest.name}</Label>
+          <span className="text-[11px] text-muted-foreground">v{item.manifest.version}</span>
+        </CardTitle>
+        <CardDescription className="text-xs">{item.manifest.description}</CardDescription>
+        <CardAction>
+          <Switch
+            checked={item.enabled}
+            disabled={props.disabled}
+            id={switchId}
+            onCheckedChange={(enabled) => {
+              void props.onToggle(item.manifest.id, enabled);
+            }}
+          />
+        </CardAction>
+      </CardHeader>
 
       {item.manifest.capabilities?.length ? (
-        <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-          {item.manifest.capabilities.map((capability) => (
-            <li key={capability}>{capability}</li>
-          ))}
-        </ul>
+        <CardContent>
+          <ul className="list-disc pl-5 text-xs text-muted-foreground">
+            {item.manifest.capabilities.map((capability) => (
+              <li key={capability}>{capability}</li>
+            ))}
+          </ul>
+        </CardContent>
       ) : null}
-    </div>
+    </Card>
   );
 }
 
@@ -97,17 +109,19 @@ function ExtensionSettingsPanelSlot(props: { disabled?: boolean; item: Extension
 
   if (loadError) {
     return (
-      <div className="rounded-none border border-destructive/30 p-4 text-sm text-destructive">
-        Could not load settings for {props.item.manifest.name}: {loadError}
-      </div>
+      <Alert variant="destructive">
+        <AlertDescription>
+          Could not load settings for {props.item.manifest.name}: {loadError}
+        </AlertDescription>
+      </Alert>
     );
   }
 
   if (!Panel) {
     return (
-      <div className="rounded-none border border-foreground/10 p-4 text-sm text-muted-foreground">
-        Loading settings for {props.item.manifest.name}...
-      </div>
+      <Alert>
+        <AlertDescription>Loading settings for {props.item.manifest.name}...</AlertDescription>
+      </Alert>
     );
   }
 
@@ -182,23 +196,30 @@ export function ExtensionsSettings(props: {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-none border border-dashed border-foreground/15 p-4 text-xs text-muted-foreground">
-        Extensions register AI-callable tools through WebAura's local extension API. Disabled
-        extensions do not appear in the model tool list, and default chat starts with every
-        extension disabled.
-      </div>
+    <div className="flex flex-col gap-4">
+      <Alert className="border-dashed">
+        <AlertDescription className="text-xs">
+          Extensions register AI-callable tools through WebAura's local extension API. Disabled
+          extensions do not appear in the model tool list, and default chat starts with every
+          extension disabled.
+        </AlertDescription>
+      </Alert>
 
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {isLoading ? (
-          <div className="rounded-none border border-foreground/10 p-4 text-sm text-muted-foreground">
-            Loading extensions...
-          </div>
+          <Alert>
+            <AlertDescription>Loading extensions...</AlertDescription>
+          </Alert>
         ) : null}
         {!isLoading && items.length === 0 ? (
-          <div className="rounded-none border border-foreground/10 p-4 text-sm text-muted-foreground">
-            No extensions installed.
-          </div>
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyTitle>No extensions installed.</EmptyTitle>
+              <EmptyDescription>
+                Optional extensions can register AI-callable tools when installed and enabled.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : null}
         {items.map((item) => (
           <ExtensionCard

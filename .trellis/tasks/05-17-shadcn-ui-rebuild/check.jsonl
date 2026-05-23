@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/ui/frontend/index.md", "reason": "UI package frontend guideline index"}
+{"file": ".trellis/spec/ui/frontend/design-system.md", "reason": "Verify shadcn preset/source update, theme tokens, typography, dependencies, and diff hygiene"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "Verify app-level shadcn config preserves monorepo aliases"}
+{"file": ".trellis/tasks/05-17-shadcn-ui-rebuild/research/ai-tool-design-patterns.md", "reason": "Check color and typography decisions against AI coding assistant ergonomics"}

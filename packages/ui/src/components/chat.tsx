@@ -26,6 +26,7 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "@webaura/ui/components/ai-elements/conversation";
+import { Spinner } from "@webaura/ui/components/spinner";
 import { StatusShimmer } from "@webaura/ui/components/ai-elements/shimmer";
 import { ProgressiveBlur } from "@webaura/ui/components/progressive-blur";
 import { copySessionToClipboard } from "@webaura/pi/lib/copy-session-markdown";
@@ -90,9 +91,24 @@ function isSystemNotice(
 }
 
 function LoadingState({ label }: { label: string }) {
+  const [show, setShow] = React.useState(false);
+
+  React.useEffect(() => {
+    // 延迟 150ms 渲染加载状态，如果在这期间加载完成，用户完全不会看到任何闪烁
+    const timer = setTimeout(() => setShow(true), 150);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!show) {
+    return null;
+  }
+
   return (
-    <div className="flex h-full items-center justify-center px-6 text-sm text-muted-foreground">
-      {label}
+    <div className="flex h-[50vh] w-full animate-in fade-in duration-200 items-center justify-center px-6">
+      <div className="flex flex-col items-center gap-3">
+        <Spinner className="size-5 text-muted-foreground/70" />
+        <span className="text-xs font-medium text-muted-foreground/80 tracking-wide">{label}</span>
+      </div>
     </div>
   );
 }

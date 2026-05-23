@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ArrowRight } from "lucide-react";
 import { ChatLogo } from "@webaura/ui/components/chat-logo";
 import { Button } from "@webaura/ui/components/button";
 
@@ -23,7 +23,7 @@ export function LandingPage() {
           <Button asChild className="rounded-none" size="lg">
             <Link to="/chat">
               Start chatting
-              <ArrowRightIcon className="size-4" weight="bold" />
+              <ArrowRight className="size-4" strokeWidth={2} />
             </Link>
           </Button>
         </div>

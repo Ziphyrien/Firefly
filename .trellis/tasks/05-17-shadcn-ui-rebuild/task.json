@@ -1,0 +1,43 @@
+{
+  "id": "shadcn-ui-rebuild",
+  "name": "shadcn-ui-rebuild",
+  "title": "shadcn UI Rebuild",
+  "description": "Rebuild the shared shadcn/ui layer with the Nova preset, Zinc base colors, default shadcn theme colors, Lucide standard component icons, and JetBrains Mono for code.",
+  "status": "in_progress",
+  "dev_type": "frontend",
+  "scope": "ui",
+  "package": "ui",
+  "priority": "P2",
+  "creator": "Ziphyrien",
+  "assignee": "Ziphyrien",
+  "createdAt": "2026-05-17",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "packages/ui/components.json",
+    "apps/web/components.json",
+    "packages/ui/src/styles/globals.css",
+    "packages/ui/src/components/",
+    "packages/ui/src/hooks/use-mobile.ts",
+    "packages/ui/package.json",
+    "packages/extensions/src/github/settings-panel.tsx",
+    "bun.lock",
+    ".trellis/spec/ui/frontend/design-system.md"
+  ],
+  "notes": "Production build verification is blocked by an unrelated vite-plus/node binary issue. Manual visual QA remains follow-up work; custom UI icon imports have been migrated to Lucide.",
+  "meta": {
+    "shadcnPreset": "radix-nova",
+    "baseColor": "zinc",
+    "iconLibrary": "lucide",
+    "theme": "default-neutral",
+    "componentUpdateMethod": "bunx --bun shadcn@latest add ... --overwrite -y",
+    "customPanelAlignment": "settings panels compose Card, Alert, Empty, and Field instead of hardcoded square containers"
+  }
+}

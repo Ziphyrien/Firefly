@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/ui/frontend/index.md", "reason": "UI package frontend guideline index"}
+{"file": ".trellis/spec/ui/frontend/design-system.md", "reason": "Design-system contracts for shadcn preset, OKLCH theme, typography, icons, and verification"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "Web app frontend guideline index for app-level shadcn config"}
+{"file": ".trellis/tasks/05-17-shadcn-ui-rebuild/research/ai-tool-design-patterns.md", "reason": "Background research for AI coding assistant color, dark-mode, and readability decisions"}
+{"file": ".trellis/tasks/05-17-shadcn-ui-rebuild/research/shadcn-presets.md", "reason": "Preset comparison and Nova selection rationale"}
+{"file": ".trellis/tasks/05-17-shadcn-ui-rebuild/research/typography-for-dev-tools.md", "reason": "Typography rationale for Geist Sans and JetBrains Mono"}
+{"file": ".trellis/tasks/05-17-shadcn-ui-rebuild/research/icon-libraries.md", "reason": "Lucide vs Phosphor rationale and migration notes"}

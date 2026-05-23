@@ -1,4 +1,4 @@
-import { SparkleIcon, LightbulbIcon, ArrowRightIcon } from "@phosphor-icons/react";
+import { Sparkles, Lightbulb, ArrowRight } from "lucide-react";
 import { CHAT_SUGGESTIONS } from "@webaura/ui/components/chat-suggestions";
 import { Card, CardHeader, CardTitle, CardContent } from "@webaura/ui/components/card";
 
@@ -13,7 +13,7 @@ export function ChatEmptyState({
         {/* Hero Section */}
         <div className="flex flex-col items-center justify-center gap-4">
           <div className="flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1 mb-2">
-            <SparkleIcon className="size-3.5 text-primary animate-pulse" weight="fill" />
+            <Sparkles className="size-3.5 animate-pulse text-primary" strokeWidth={1.8} />
             <span className="text-xs font-medium text-muted-foreground">
               Local-first AI Assistant
             </span>
@@ -46,15 +46,15 @@ export function ChatEmptyState({
                 <CardTitle className="text-muted-foreground leading-relaxed">
                   {suggestion}
                 </CardTitle>
-                <LightbulbIcon
-                  className="size-4 text-muted-foreground shrink-0 ml-2"
-                  weight="duotone"
+                <Lightbulb
+                  className="ml-2 size-4 shrink-0 text-muted-foreground/80"
+                  strokeWidth={1.5}
                 />
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex items-center text-xs text-muted-foreground opacity-70">
                   Click to start
-                  <ArrowRightIcon className="ml-1 size-3" weight="bold" />
+                  <ArrowRight className="ml-1 size-3" strokeWidth={2} />
                 </div>
               </CardContent>
             </Card>
