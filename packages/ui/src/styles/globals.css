@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Outfit:wght@300;400;500&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -5,9 +6,6 @@
 @import "katex/dist/katex.min.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/jetbrains-mono";
-
-/* Import elegant literary serif 'EB Garamond' and highly refined geometric rounded font 'Outfit' */
-@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Outfit:wght@300;400;500&display=swap");
 
 @source "../../../apps/web/src/**/*.{ts,tsx}";
 @source "../../../extensions/src/**/*.{ts,tsx}";
