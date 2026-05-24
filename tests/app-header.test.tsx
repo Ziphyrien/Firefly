@@ -28,12 +28,6 @@ vi.mock("@webaura/ui/components/theme-toggle", () => ({
   ThemeToggle: () => React.createElement("button", { type: "button" }, "Theme"),
 }));
 
-vi.mock("@webaura/ui/components/icons", () => ({
-  Icons: {
-    cog: () => React.createElement("span", undefined, "Cog"),
-  },
-}));
-
 vi.mock("@webaura/ui/components/tooltip", () => ({
   Tooltip: ({ children }: { children: React.ReactNode }) =>
     React.createElement("div", undefined, children),
@@ -51,6 +45,6 @@ describe("AppHeader", () => {
 
     expect(screen.queryByText("WebAura")).toBeNull();
     expect(screen.getByText("Theme")).toBeTruthy();
-    expect(screen.getAllByText("Cog").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "Open settings" })).toBeTruthy();
   });
 });

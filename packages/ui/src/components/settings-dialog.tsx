@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useRouterState } from "@tanstack/react-router";
 import type { SettingsSection } from "@webaura/ui/lib/search-state";
-import { Icons } from "@webaura/ui/components/icons";
+import { BadgeCheck, Sparkles, Receipt, Globe, Database, HelpCircle } from "lucide-react";
 import { CostsPanel } from "@webaura/ui/components/costs-panel";
 import { DataSettings } from "@webaura/ui/components/data-settings";
 import {
@@ -35,37 +35,37 @@ type SettingsSectionItem = {
 const SETTINGS_SECTIONS: Array<SettingsSectionItem> = [
   {
     description: "LLM API keys and OAuth credentials stored in this browser",
-    icon: Icons.badgeCheck,
+    icon: BadgeCheck,
     id: "providers",
     label: "Providers",
   },
   {
     description: "Enable optional AI-callable browser tools",
-    icon: Icons.sparkles,
+    icon: Sparkles,
     id: "extensions",
     label: "Extensions",
   },
   {
     description: "Session and daily usage totals",
-    icon: Icons.cost,
+    icon: Receipt,
     id: "costs",
     label: "Costs",
   },
   {
     description: "Optional proxy routing for provider requests",
-    icon: Icons.globe,
+    icon: Globe,
     id: "proxy",
     label: "Proxy",
   },
   {
     description: "Export chat or wipe all local app data",
-    icon: Icons.bank,
+    icon: Database,
     id: "data",
     label: "Data",
   },
   {
     description: "How WebAura runs browser-native AI modules locally",
-    icon: Icons.faceThinking,
+    icon: HelpCircle,
     id: "about",
     label: "About",
   },

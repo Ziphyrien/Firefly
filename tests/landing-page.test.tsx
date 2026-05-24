@@ -8,10 +8,6 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
-vi.mock("@webaura/ui/components/chat-logo", () => ({
-  ChatLogo: () => <div>logo</div>,
-}));
-
 vi.mock("@webaura/ui/components/button", () => ({
   Button: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) =>
     asChild ? children : <button type="button">{children}</button>,

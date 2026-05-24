@@ -1,20 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { ChatLogo } from "@webaura/ui/components/chat-logo";
 import { Button } from "@webaura/ui/components/button";
-
 export function LandingPage() {
   return (
     <div className="flex h-full min-h-0 w-full flex-col items-center overflow-auto p-6 pt-[12vh] lg:justify-between lg:overflow-hidden lg:pt-6 lg:pb-5">
       <div className="w-full max-w-xl flex-1 space-y-8 lg:flex lg:min-h-0 lg:flex-col lg:justify-center lg:space-y-5">
         <div className="space-y-6 text-center lg:space-y-4">
           <h1 className="sr-only">WebAura</h1>
-          <ChatLogo
-            aria-hidden
-            className="[&_.font-geist-pixel-square]:lg:text-7xl [&_.font-geist-pixel-square]:xl:text-8xl"
-            size="hero"
-          />
-          <p className="mx-auto max-w-md text-sm text-muted-foreground">
+          <span className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-transparent select-none block">
+            WebAura
+          </span>
+          <p className="mx-auto max-w-md text-sm text-muted-foreground mt-2">
             Local-first AI tools, running in your browser. Start with a normal chat.
           </p>
         </div>
