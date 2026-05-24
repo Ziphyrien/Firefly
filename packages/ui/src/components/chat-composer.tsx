@@ -132,9 +132,6 @@ function ChatComposerInner(props: {
               aria-label="Add attachments"
               disabled={locked}
               onClick={handleAddAttachments}
-              tooltip={{
-                content: "Attach supported images and documents to this message.",
-              }}
             >
               <PaperclipIcon className="size-4" />
             </PromptInputButton>

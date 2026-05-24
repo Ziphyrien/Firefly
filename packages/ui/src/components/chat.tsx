@@ -208,6 +208,7 @@ export function Chat(props: ChatProps) {
     undefined,
   );
   const [isSharePending, setIsSharePending] = React.useState(false);
+  const isSharePendingRef = React.useRef(false);
   const runtime = useRuntimeSession(props.sessionId);
   const { isStartingSession, startNewConversation } = useConversationStarter();
   const ownership = useSessionOwnership(
@@ -532,11 +533,23 @@ export function Chat(props: ChatProps) {
     );
   }, [messages]);
 
-  const handleShareSession = React.useCallback(() => {
-    if (isSharePending) {
+  const handleCopyManualShareLink = React.useCallback(() => {
+    if (!manualShareLink) {
       return;
     }
 
+    void navigator.clipboard.writeText(manualShareLink.link).then(
+      () => toast.success("Copied share link"),
+      () => toast.error("Failed to copy share link"),
+    );
+  }, [manualShareLink]);
+
+  const handleShareSession = React.useCallback(() => {
+    if (isSharePendingRef.current) {
+      return;
+    }
+
+    isSharePendingRef.current = true;
     setIsSharePending(true);
 
     const snapshot = buildShareSnapshot(messages, {
@@ -549,9 +562,11 @@ export function Chat(props: ChatProps) {
       .then(async (share) => {
         try {
           await navigator.clipboard.writeText(share.link);
-          toast.success(
-            share.mode === "nostr" ? "Copied encrypted Nostr share link" : "Copied share link",
-          );
+          if (share.mode === "nostr") {
+            // Only show toast for Nostr since it's a special encrypted share,
+            // standard share copies link silently as visual button handles success feedback
+            toast.success("Copied encrypted Nostr share link");
+          }
         } catch {
           setManualShareLink(share);
           toast.error("Share link created, but clipboard access was blocked");
@@ -565,26 +580,11 @@ export function Chat(props: ChatProps) {
 
         toast.error("Failed to create share link");
       })
-      .finally(() => setIsSharePending(false));
-  }, [
-    activeSession?.model,
-    activeSession?.provider,
-    activeSession?.title,
-    draft?.model,
-    isSharePending,
-    messages,
-  ]);
-
-  const handleCopyManualShareLink = React.useCallback(() => {
-    if (!manualShareLink) {
-      return;
-    }
-
-    void navigator.clipboard.writeText(manualShareLink.link).then(
-      () => toast.success("Copied share link"),
-      () => toast.error("Failed to copy share link"),
-    );
-  }, [manualShareLink]);
+      .finally(() => {
+        isSharePendingRef.current = false;
+        setIsSharePending(false);
+      });
+  }, [activeSession?.model, activeSession?.provider, activeSession?.title, draft?.model, messages]);
 
   if (loadedSessionState === undefined) {
     return <LoadingState label="Loading session..." />;
