@@ -23,15 +23,24 @@ import {
   PROXY_URL_KEY,
   proxyConfigFromSettingsRows,
 } from "@webaura/pi/proxy/settings";
-import { Button } from "@webaura/ui/components/button";
-import { Input } from "@webaura/ui/components/input";
+import { Button } from "./button";
+import { Input } from "./input";
+import { Label } from "./label";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "./empty";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemTitle,
-} from "@webaura/ui/components/item";
+  Plus,
+  Trash2,
+  Edit2,
+  X,
+  Check,
+  Key,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  HelpCircle,
+} from "lucide-react";
 
 type DeviceCodePrompt = {
   userCode: string;
@@ -51,15 +60,6 @@ function apiKeyProviderLabel(provider: ProviderId): string {
   return getProviderGroupMetadata(provider as ProviderGroupId).label;
 }
 
-function hasStoredPlainApiKey(
-  providerKeys: { provider: ProviderId; value: string }[],
-  provider: ProviderId,
-): boolean {
-  const record = providerKeys.find((item) => item.provider === provider);
-  const trimmed = record?.value?.trim() ?? "";
-  return Boolean(trimmed && !trimmed.startsWith("{"));
-}
-
 export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
   const providerKeys = useLiveQuery(() => db.providerKeys.toArray(), []) ?? [];
   const proxySettingRows = useLiveQuery(() =>
@@ -77,7 +77,15 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
     };
   }, [proxySettingRows]);
 
-  const [draftValues, setDraftValues] = React.useState<Partial<Record<ProviderId, string>>>({});
+  // Reactive custom names for API keys stored in db.settings under "provider-custom-names"
+  const customNamesRecord = useLiveQuery(() => db.settings.get("provider-custom-names"));
+  const customNames = React.useMemo(() => {
+    if (customNamesRecord?.value && typeof customNamesRecord.value === "object") {
+      return customNamesRecord.value as Record<string, string>;
+    }
+    return {} as Record<string, string>;
+  }, [customNamesRecord]);
+
   const [devicePrompts, setDevicePrompts] = React.useState<
     Partial<Record<OAuthProviderId, DeviceCodePrompt>>
   >({});
@@ -96,20 +104,37 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
     | undefined
   >(undefined);
 
-  React.useEffect(() => {
-    setDraftValues(
-      Object.fromEntries(
-        providerKeys.map((record) => [
-          record.provider,
-          record.value.trim().startsWith("{") ? "" : record.value,
-        ]),
-      ) as Partial<Record<ProviderId, string>>,
-    );
-  }, [providerKeys]);
+  // Selector & inline editing states for API keys
+  const [selectedProviderToAdd, setSelectedProviderToAdd] = React.useState<string>("");
+  const [newKeyLabel, setNewKeyLabel] = React.useState<string>("");
+  const [newKeyApiValue, setNewKeyApiValue] = React.useState<string>("");
+
+  // Inline card editing states
+  const [editingProviderId, setEditingProviderId] = React.useState<ProviderId | undefined>();
+  const [editLabel, setEditLabel] = React.useState<string>("");
+  const [editApiValue, setEditApiValue] = React.useState<string>("");
+  const [visibleKeyProviderId, setVisibleKeyProviderId] = React.useState<ProviderId | undefined>();
 
   const apiKeyProviders = React.useMemo(() => getSortedApiKeyProvidersForSettings(), []);
-
   const subscriptionOAuthProviders = React.useMemo(() => getOAuthProvidersForSettings(), []);
+
+  // Filter down to API key providers that do NOT have a saved key yet
+  const availableProviders = React.useMemo(() => {
+    return apiKeyProviders.filter(
+      (provider) => !providerKeys.some((k) => k.provider === provider && !k.value.startsWith("{")),
+    );
+  }, [apiKeyProviders, providerKeys]);
+
+  // Maintain selected provider choice to always point to first available item when options change
+  React.useEffect(() => {
+    if (availableProviders.length > 0) {
+      if (!availableProviders.includes(selectedProviderToAdd as any)) {
+        setSelectedProviderToAdd(availableProviders[0]);
+      }
+    } else {
+      setSelectedProviderToAdd("");
+    }
+  }, [availableProviders, selectedProviderToAdd]);
 
   const handleOAuthLogin = async (provider: OAuthProviderId) => {
     setLoggingInProvider(provider);
@@ -185,37 +210,121 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
     setManualRedirectPrompt(undefined);
   };
 
+  // Helper to save a custom label/name for a provider key
+  const saveCustomName = async (providerId: string, name: string) => {
+    const record = await db.settings.get("provider-custom-names");
+    const current =
+      record?.value && typeof record.value === "object"
+        ? { ...(record.value as Record<string, string>) }
+        : {};
+
+    const trimmed = name.trim();
+    if (trimmed) {
+      current[providerId] = trimmed;
+    } else {
+      delete current[providerId];
+    }
+
+    await db.settings.put({
+      key: "provider-custom-names",
+      updatedAt: new Date().toISOString(),
+      value: current,
+    });
+  };
+
+  // Save/Add API key handler
+  const handleAddApiKey = async () => {
+    const provider = selectedProviderToAdd as ProviderId;
+    const value = newKeyApiValue.trim();
+
+    if (!provider) {
+      toast.error("Please select a provider first");
+      return;
+    }
+
+    if (!value) {
+      toast.warning("Enter an API key first");
+      return;
+    }
+
+    try {
+      await setProviderApiKey(provider, value);
+      await saveCustomName(provider, newKeyLabel);
+      toast.success(`${apiKeyProviderLabel(provider)} API key saved successfully`);
+      setNewKeyApiValue("");
+      setNewKeyLabel("");
+    } catch {
+      toast.error("Could not save API key");
+    }
+  };
+
+  // Delete/Clear API key handler
+  const handleClearApiKey = async (provider: ProviderId) => {
+    try {
+      await disconnectProvider(provider);
+      await saveCustomName(provider, "");
+      toast.success(`${apiKeyProviderLabel(provider)} API key removed`);
+    } catch {
+      toast.error("Could not remove API key");
+    }
+  };
+
+  // Inline card edit save handler
+  const handleSaveEdit = async (provider: ProviderId) => {
+    try {
+      if (editApiValue.trim()) {
+        await setProviderApiKey(provider, editApiValue.trim());
+      }
+      await saveCustomName(provider, editLabel);
+      toast.success(`Updated ${apiKeyProviderLabel(provider)} settings`);
+      setEditingProviderId(undefined);
+      setEditApiValue("");
+      setEditLabel("");
+    } catch {
+      toast.error("Could not save updates");
+    }
+  };
+
+  const activeSavedKeys = React.useMemo(() => {
+    return providerKeys.filter(
+      (item) => apiKeyProviders.includes(item.provider) && !item.value.startsWith("{"),
+    );
+  }, [providerKeys, apiKeyProviders]);
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
+      {/* SECTION 1: SUBSCRIPTION LOGIN (OAuth Providers) */}
       <section className="space-y-4">
-        <div className="space-y-1.5">
-          <h3 className="text-sm font-medium">Subscription Login</h3>
-          <p className="text-xs text-muted-foreground">
-            Connect your existing subscriptions directly in your browser. Tokens are stored locally
-            in this browser.
+        <div className="space-y-1">
+          <h3 className="text-sm font-semibold tracking-tight">Subscription Login</h3>
+          <p className="text-xs text-muted-foreground leading-normal">
+            Connect your existing subscriptions directly in your browser. Tokens are stored locally.
           </p>
         </div>
 
-        <div className="text-xs text-muted-foreground">
-          <p>
-            Browser OAuth requests use{" "}
-            <span className="font-medium text-foreground">{proxyConfig.url}</span> when proxying is
-            enabled. An untrusted proxy can see provider OAuth credentials.{" "}
-            {props.onNavigateToProxy ? (
-              <button
-                className="font-medium text-foreground underline underline-offset-4 hover:text-foreground"
-                onClick={props.onNavigateToProxy}
-                type="button"
-              >
-                Change in Proxy settings.
-              </button>
-            ) : (
-              <span>Change in Proxy settings.</span>
-            )}
-          </p>
-        </div>
+        <Card size="sm">
+          <CardContent className="grid grid-cols-[auto_1fr] items-center gap-2 text-xs text-muted-foreground">
+            <HelpCircle className="size-4 shrink-0" />
+            <p className="leading-relaxed">
+              OAuth requests use{" "}
+              <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground">
+                {proxyConfig.url}
+              </code>{" "}
+              when proxying is enabled.{" "}
+              {props.onNavigateToProxy ? (
+                <button
+                  className="font-medium text-foreground underline underline-offset-4 hover:text-foreground"
+                  onClick={props.onNavigateToProxy}
+                  type="button"
+                >
+                  Change proxy settings.
+                </button>
+              ) : null}
+            </p>
+          </CardContent>
+        </Card>
 
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {subscriptionOAuthProviders.map((provider) => {
             const record = providerKeys.find((item) => item.provider === provider);
             const connected = isOAuthConnected(record?.value);
@@ -224,15 +333,24 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
             const loggingIn = loggingInProvider === provider;
 
             return (
-              <div className="space-y-2" key={provider}>
-                <Item className="items-start" variant="outline">
-                  <ItemContent>
-                    <ItemTitle className="text-sm font-medium text-foreground">
+              <Card key={provider} size="sm">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div className="space-y-0.5">
+                    <CardTitle className="text-sm font-medium">
                       {getOAuthProviderName(provider)}
-                    </ItemTitle>
-                    <ItemDescription>{connected ? "Connected" : "Not connected"}</ItemDescription>
-                  </ItemContent>
-                  <ItemActions className="ml-auto shrink-0">
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      {connected ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-500 font-medium">
+                          <Check className="size-3" /> Connected
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Not connected</span>
+                      )}
+                    </CardDescription>
+                  </div>
+
+                  <CardAction>
                     {connected ? (
                       <Button
                         onClick={async () => {
@@ -245,6 +363,7 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
                         }}
                         size="sm"
                         variant="outline"
+                        className="h-7 text-xs px-2.5"
                       >
                         Disconnect
                       </Button>
@@ -254,171 +373,347 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
                         onClick={() => void handleOAuthLogin(provider)}
                         size="sm"
                         variant="secondary"
+                        className="h-7 text-xs px-2.5"
                       >
                         {loggingIn ? "Signing in..." : "Sign in"}
                       </Button>
                     )}
-                  </ItemActions>
-                </Item>
+                  </CardAction>
+                </CardHeader>
 
-                {!connected && devicePrompt ? (
-                  <Item className="items-start" variant="muted">
-                    <ItemContent className="min-w-0">
-                      <ItemTitle className="text-sm font-medium text-foreground">
-                        Complete device sign-in
-                      </ItemTitle>
-                      <ItemDescription>
-                        Enter code{" "}
-                        <code className="border border-border bg-background px-1.5 py-0.5 font-mono text-foreground">
-                          {devicePrompt.userCode}
-                        </code>{" "}
-                        at{" "}
-                        <a
-                          className="font-medium text-foreground underline underline-offset-4"
-                          href={devicePrompt.verificationUri}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          {devicePrompt.verificationUri}
-                        </a>
-                        .
-                      </ItemDescription>
-                    </ItemContent>
-                  </Item>
-                ) : null}
-
-                {!connected && manualRedirectPrompt?.provider === provider ? (
-                  <Item className="items-start" variant="muted">
-                    <ItemContent className="min-w-0 space-y-3">
-                      <div className="space-y-1">
-                        <ItemTitle className="text-sm font-medium text-foreground">
-                          Complete browser sign-in
-                        </ItemTitle>
-                        <ItemDescription>{manualRedirectPrompt.instructions}</ItemDescription>
+                {(!connected && devicePrompt) ||
+                (!connected && manualRedirectPrompt?.provider === provider) ||
+                loginError ? (
+                  <CardContent className="border-t pt-3 text-xs">
+                    {!connected && devicePrompt && (
+                      <div className="space-y-2">
+                        <p className="text-muted-foreground">Complete device sign-in:</p>
+                        <div className="flex flex-col gap-1.5 font-mono">
+                          <code className="rounded-md border bg-muted px-2 py-1 text-center font-bold tracking-wider text-foreground">
+                            {devicePrompt.userCode}
+                          </code>
+                          <a
+                            className="break-all py-1 text-center font-medium text-foreground underline underline-offset-4"
+                            href={devicePrompt.verificationUri}
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            {devicePrompt.verificationUri}
+                          </a>
+                        </div>
                       </div>
-                      <Input
-                        autoComplete="off"
-                        onChange={(event) =>
-                          setManualRedirectPrompt((current) =>
-                            current
-                              ? {
-                                  ...current,
-                                  value: event.target.value,
-                                }
-                              : current,
-                          )
-                        }
-                        placeholder={manualRedirectPrompt.placeholder}
-                        value={manualRedirectPrompt.value}
-                      />
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button
-                          disabled={!manualRedirectPrompt.value.trim()}
-                          onClick={resolveManualRedirect}
-                          size="sm"
-                          variant="secondary"
-                        >
-                          Continue
-                        </Button>
-                        <Button onClick={cancelManualRedirect} size="sm" variant="outline">
-                          Cancel
-                        </Button>
-                        <a
-                          className="text-xs font-medium text-foreground underline underline-offset-4"
-                          href={manualRedirectPrompt.authUrl}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          Reopen sign-in window
-                        </a>
-                      </div>
-                    </ItemContent>
-                  </Item>
-                ) : null}
+                    )}
 
-                {loginError ? <div className="text-xs text-destructive">{loginError}</div> : null}
-              </div>
+                    {!connected && manualRedirectPrompt?.provider === provider && (
+                      <div className="space-y-2.5">
+                        <div className="space-y-1">
+                          <p className="font-medium text-foreground">Complete browser sign-in</p>
+                          <p className="text-muted-foreground">
+                            {manualRedirectPrompt.instructions}
+                          </p>
+                        </div>
+                        <Input
+                          autoComplete="off"
+                          className="h-8 text-xs"
+                          onChange={(event) =>
+                            setManualRedirectPrompt((current) =>
+                              current
+                                ? {
+                                    ...current,
+                                    value: event.target.value,
+                                  }
+                                : current,
+                            )
+                          }
+                          placeholder={manualRedirectPrompt.placeholder}
+                          value={manualRedirectPrompt.value}
+                        />
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            disabled={!manualRedirectPrompt.value.trim()}
+                            onClick={resolveManualRedirect}
+                            size="sm"
+                            variant="secondary"
+                            className="h-7 text-xs"
+                          >
+                            Continue
+                          </Button>
+                          <Button
+                            onClick={cancelManualRedirect}
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                          >
+                            Cancel
+                          </Button>
+                          <a
+                            className="ml-auto text-[11px] font-medium text-foreground underline underline-offset-4"
+                            href={manualRedirectPrompt.authUrl}
+                            rel="noreferrer"
+                            target="_blank"
+                          >
+                            Reopen window
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {loginError && (
+                      <div className="flex gap-1.5 items-center text-destructive">
+                        <AlertCircle className="size-3.5" />
+                        <span>{loginError}</span>
+                      </div>
+                    )}
+                  </CardContent>
+                ) : null}
+              </Card>
             );
           })}
         </div>
       </section>
 
-      <section className="space-y-6">
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">API Keys</h3>
-          <p className="text-xs text-muted-foreground">
+      {/* SECTION 2: API KEYS */}
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h3 className="text-sm font-semibold tracking-tight">API Keys</h3>
+          <p className="text-xs text-muted-foreground leading-normal">
             Enter API keys for cloud providers. Keys are stored locally in your browser.
           </p>
         </div>
 
-        <div className="flex flex-col gap-6">
-          {apiKeyProviders.map((provider) => {
-            const keySaved = hasStoredPlainApiKey(providerKeys, provider);
+        {/* List Active Configured Keys */}
+        {activeSavedKeys.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+              Configured Keys ({activeSavedKeys.length})
+            </h4>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {activeSavedKeys.map((item) => {
+                const provider = item.provider;
+                const isEditing = editingProviderId === provider;
+                const savedLabel = customNames[provider] || apiKeyProviderLabel(provider);
+                const hasCustomName = Boolean(customNames[provider]);
+                const isVisible = visibleKeyProviderId === provider;
 
-            return (
-              <div className="space-y-2" key={provider}>
-                <div className="text-sm font-medium text-foreground">
-                  {apiKeyProviderLabel(provider)}
+                return (
+                  <Card key={provider} size="sm">
+                    {!isEditing ? (
+                      <CardHeader className="flex flex-row items-start justify-between pb-2">
+                        <div className="space-y-1 min-w-0 pr-2">
+                          <div className="flex items-center gap-1.5">
+                            <Key className="size-3.5 text-muted-foreground shrink-0" />
+                            <CardTitle className="text-sm font-semibold truncate leading-none">
+                              {savedLabel}
+                            </CardTitle>
+                          </div>
+                          {hasCustomName && (
+                            <CardDescription className="text-xs text-muted-foreground/80 font-mono truncate leading-none">
+                              Type: {apiKeyProviderLabel(provider)}
+                            </CardDescription>
+                          )}
+                          <div className="text-xs font-mono text-muted-foreground/70 flex items-center gap-1.5 pt-1.5 select-all">
+                            <span>{isVisible ? item.value : "••••••••••••••••••••"}</span>
+                            <button
+                              onClick={() =>
+                                setVisibleKeyProviderId(isVisible ? undefined : provider)
+                              }
+                              type="button"
+                              className="text-muted-foreground/80 hover:text-foreground p-0.5 transition-colors"
+                              title={isVisible ? "Hide API key" : "Show API key"}
+                            >
+                              {isVisible ? (
+                                <EyeOff className="size-3" />
+                              ) : (
+                                <Eye className="size-3" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        <CardAction className="flex gap-1.5">
+                          <Button
+                            onClick={() => {
+                              setEditingProviderId(provider);
+                              setEditLabel(customNames[provider] ?? "");
+                              setEditApiValue("");
+                            }}
+                            size="sm"
+                            variant="outline"
+                            className="h-7 w-7 p-0"
+                            title="Edit"
+                          >
+                            <Edit2 className="size-3.5" />
+                          </Button>
+                          <Button
+                            onClick={() => handleClearApiKey(provider)}
+                            size="sm"
+                            variant="outline"
+                            className="h-7 w-7 p-0 text-destructive hover:bg-destructive/5 dark:hover:bg-destructive/10"
+                            title="Remove Key"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </CardAction>
+                      </CardHeader>
+                    ) : (
+                      <CardContent className="space-y-3 border-t pt-3 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-foreground">
+                            Edit {apiKeyProviderLabel(provider)} Key
+                          </span>
+                          <span className="text-[10px] uppercase font-mono text-muted-foreground">
+                            Inline Editor
+                          </span>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label
+                            className="text-[11px] text-muted-foreground"
+                            htmlFor={`edit-label-${provider}`}
+                          >
+                            Custom Name / Alias
+                          </Label>
+                          <Input
+                            autoComplete="off"
+                            className="h-8 text-xs"
+                            id={`edit-label-${provider}`}
+                            onChange={(e) => setEditLabel(e.target.value)}
+                            placeholder={apiKeyProviderLabel(provider)}
+                            value={editLabel}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label
+                            className="text-[11px] text-muted-foreground"
+                            htmlFor={`edit-value-${provider}`}
+                          >
+                            Update API Key (Optional)
+                          </Label>
+                          <Input
+                            autoComplete="off"
+                            className="h-8 text-xs font-mono"
+                            id={`edit-value-${provider}`}
+                            onChange={(e) => setEditApiValue(e.target.value)}
+                            placeholder="Enter new key, or leave blank to keep current"
+                            type="password"
+                            value={editApiValue}
+                          />
+                        </div>
+
+                        <div className="flex gap-2 justify-end pt-1">
+                          <Button
+                            onClick={() => setEditingProviderId(undefined)}
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs px-2.5"
+                          >
+                            <X className="size-3 mr-1" /> Cancel
+                          </Button>
+                          <Button
+                            onClick={() => handleSaveEdit(provider)}
+                            size="sm"
+                            className="h-7 text-xs px-2.5"
+                          >
+                            <Check className="size-3 mr-1" /> Save
+                          </Button>
+                        </div>
+                      </CardContent>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Add Provider Selector Form Card */}
+        {availableProviders.length > 0 ? (
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Plus className="size-4 text-muted-foreground" />
+                Configure New Provider
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Choose a provider, give the key an optional name, then save it locally.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground" htmlFor="add-provider-select">
+                    Provider
+                  </Label>
+                  <Select value={selectedProviderToAdd} onValueChange={setSelectedProviderToAdd}>
+                    <SelectTrigger className="w-full h-8 text-xs bg-background border-border/80">
+                      <SelectValue placeholder="Choose provider" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableProviders.map((provider) => (
+                        <SelectItem key={provider} value={provider}>
+                          {apiKeyProviderLabel(provider as ProviderId)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="flex gap-2">
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground" htmlFor="add-provider-label">
+                    Custom Alias / Nickname
+                  </Label>
                   <Input
                     autoComplete="off"
-                    className="min-w-0 flex-1"
-                    onChange={(event) =>
-                      setDraftValues((current) => ({
-                        ...current,
-                        [provider]: event.target.value,
-                      }))
+                    className="h-8 text-xs bg-background border-border/80"
+                    id="add-provider-label"
+                    onChange={(e) => setNewKeyLabel(e.target.value)}
+                    placeholder={
+                      selectedProviderToAdd
+                        ? apiKeyProviderLabel(selectedProviderToAdd as ProviderId)
+                        : "e.g. My Work Account"
                     }
-                    placeholder="Enter API key"
-                    type="password"
-                    value={draftValues[provider] ?? ""}
+                    value={newKeyLabel}
                   />
-                  {keySaved ? (
-                    <Button
-                      className="shrink-0"
-                      onClick={async () => {
-                        try {
-                          await disconnectProvider(provider);
-                          toast.success(`${apiKeyProviderLabel(provider)} API key removed`);
-                        } catch {
-                          toast.error("Could not remove API key");
-                        }
-                      }}
-                      size="sm"
-                      variant="outline"
-                    >
-                      Clear
-                    </Button>
-                  ) : (
-                    <Button
-                      className="shrink-0"
-                      onClick={async () => {
-                        const value = draftValues[provider]?.trim();
+                </div>
 
-                        if (!value) {
-                          toast.warning("Enter an API key first");
-                          return;
-                        }
-
-                        try {
-                          await setProviderApiKey(provider, value);
-                          toast.success(`${apiKeyProviderLabel(provider)} API key saved`);
-                        } catch {
-                          toast.error("Could not save API key");
-                        }
-                      }}
-                      size="sm"
-                      variant="secondary"
-                    >
-                      Save
-                    </Button>
-                  )}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground" htmlFor="add-provider-key">
+                    API Key
+                  </Label>
+                  <Input
+                    autoComplete="off"
+                    className="h-8 text-xs font-mono bg-background border-border/80"
+                    id="add-provider-key"
+                    onChange={(e) => setNewKeyApiValue(e.target.value)}
+                    placeholder="sk-..."
+                    type="password"
+                    value={newKeyApiValue}
+                  />
                 </div>
               </div>
-            );
-          })}
-        </div>
+
+              <div className="flex justify-end pt-1">
+                <Button
+                  onClick={handleAddApiKey}
+                  size="sm"
+                  className="h-8 text-xs px-3 bg-foreground text-primary-foreground hover:bg-foreground/90 font-medium"
+                >
+                  <Plus className="size-3.5 mr-1" /> Configure Provider
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>All providers are configured.</EmptyTitle>
+              <EmptyDescription>
+                You can edit existing API keys from their cards above.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )}
       </section>
     </div>
   );
