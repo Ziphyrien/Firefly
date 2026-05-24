@@ -1,6 +1,8 @@
 import * as React from "react";
 import { toast } from "sonner";
-import { PaperclipIcon } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { PaperclipIcon, SquarePen } from "lucide-react";
+import { Button } from "@webaura/ui/components/button";
 import { ChatModelSelector } from "./chat-model-selector";
 import type { ChatStatus } from "ai";
 import type { PromptInputMessage } from "@webaura/ui/components/ai-elements/prompt-input";
@@ -54,6 +56,7 @@ function ChatComposerInner(props: {
   onSend: (input: UserTurnInput) => Promise<void> | void;
   onThinkingLevelChange: (level: ThinkingLevel) => Promise<void> | void;
   placeholder?: string;
+  showNewChatAction?: boolean;
   providerGroup: ProviderGroupId;
   thinkingLevel: ThinkingLevel;
   utilityActions?: React.ReactNode;
@@ -61,6 +64,7 @@ function ChatComposerInner(props: {
   const { attachments, textInput } = usePromptInputController();
   const text = textInput.value;
   const hasAttachments = attachments.files.length > 0;
+  const hasDraft = text.trim().length > 0 || hasAttachments;
   const locked = props.composerDisabled === true;
 
   const handleAddAttachments = React.useCallback(() => {
@@ -101,7 +105,22 @@ function ChatComposerInner(props: {
   const controlsDisabled = locked || props.isStreaming;
 
   return (
-    <div className="mx-auto grid w-full max-w-4xl gap-4">
+    <div className="mx-auto grid w-full max-w-4xl gap-3">
+      {props.showNewChatAction || props.utilityActions ? (
+        <div className="flex items-center justify-between gap-2">
+          {props.showNewChatAction ? (
+            <Button asChild className="gap-1.5" size="sm" variant="outline">
+              <Link search={{}} to="/chat">
+                <SquarePen className="size-3.5" />
+                New Chat
+              </Link>
+            </Button>
+          ) : (
+            <span aria-hidden />
+          )}
+          {props.utilityActions ? <div className="shrink-0">{props.utilityActions}</div> : null}
+        </div>
+      ) : null}
       <PromptInput
         accept={SUPPORTED_ATTACHMENT_ACCEPT}
         filePickerTypes={SUPPORTED_ATTACHMENT_PICKER_TYPES}
@@ -165,12 +184,13 @@ function ChatComposerInner(props: {
             ) : null}
           </PromptInputTools>
 
-          {props.utilityActions ? (
-            <div className="ml-auto shrink-0">{props.utilityActions}</div>
-          ) : null}
-
           <PromptInputSubmit
-            disabled={locked || (!text.trim() && !hasAttachments && !props.isStreaming)}
+            disabled={locked}
+            onClick={(event) => {
+              if (!props.isStreaming && !hasDraft) {
+                event.preventDefault();
+              }
+            }}
             onStop={props.onAbort}
             status={submitStatus}
           />
@@ -210,6 +230,7 @@ export function ChatComposer(props: {
   onSend: (input: UserTurnInput) => Promise<void> | void;
   onThinkingLevelChange: (level: ThinkingLevel) => Promise<void> | void;
   placeholder?: string;
+  showNewChatAction?: boolean;
   providerGroup: ProviderGroupId;
   thinkingLevel: ThinkingLevel;
   utilityActions?: React.ReactNode;

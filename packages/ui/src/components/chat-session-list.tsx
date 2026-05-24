@@ -3,8 +3,6 @@ import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { subDays, startOfDay } from "date-fns";
 import type { SessionData } from "@webaura/db";
-import { Icons } from "@webaura/ui/components/icons";
-import { Button } from "@webaura/ui/components/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +22,6 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from "@webaura/ui/components/sidebar";
 import { Trash2, X } from "lucide-react";
 
@@ -197,20 +194,7 @@ export function ChatSessionList(props: {
 
   return (
     <>
-      <div className="p-2">
-        <Button
-          asChild
-          className="h-10 w-full rounded-none bg-foreground text-primary-foreground hover:bg-foreground/90"
-          size="lg"
-        >
-          <Link {...props.createSessionTarget} onClick={props.onCreateSession}>
-            <Icons.writing />
-            New Chat
-          </Link>
-        </Button>
-      </div>
-      <SidebarSeparator className="mx-0" />
-      <SidebarContent className="no-scrollbar overscroll-contain">
+      <SidebarContent className="no-scrollbar overscroll-contain pt-2">
         {props.sessions.length === 0 ? (
           <SidebarGroup className="group-data-[collapsible=icon]:hidden">
             <SidebarGroupLabel>Sessions</SidebarGroupLabel>

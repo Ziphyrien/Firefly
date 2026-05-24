@@ -29,7 +29,6 @@ import {
 import { Spinner } from "@webaura/ui/components/spinner";
 import { StatusShimmer } from "@webaura/ui/components/ai-elements/shimmer";
 import { ProgressiveBlur } from "@webaura/ui/components/progressive-blur";
-import { copySessionToClipboard } from "@webaura/pi/lib/copy-session-markdown";
 import {
   buildShareSnapshot,
   createShareLink,
@@ -526,13 +525,6 @@ export function Chat(props: ChatProps) {
     }
   }, [reportRuntimeFailure, resumeAction, runtime]);
 
-  const handleCopySession = React.useCallback(() => {
-    void copySessionToClipboard(messages).then(
-      () => toast.success("Copied session as Markdown"),
-      () => toast.error("Failed to copy to clipboard"),
-    );
-  }, [messages]);
-
   const handleCopyManualShareLink = React.useCallback(() => {
     if (!manualShareLink) {
       return;
@@ -714,18 +706,6 @@ export function Chat(props: ChatProps) {
       </Conversation>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10">
-        <div className="mx-auto w-full max-w-4xl px-4">
-          <div className="pointer-events-auto flex items-center justify-end pb-2">
-            {messages.length > 0 ? (
-              <SessionUtilityActions
-                isSharing={isSharePending}
-                onCopy={handleCopySession}
-                onShare={handleShareSession}
-              />
-            ) : null}
-          </div>
-        </div>
-
         <div className="pointer-events-auto bg-background">
           <div className="mx-auto w-full max-w-4xl px-4 pb-4">
             {bannerState?.kind === "interrupted" && resumeAction && activeSession ? (
@@ -783,7 +763,16 @@ export function Chat(props: ChatProps) {
                   });
                 }}
                 providerGroup={currentProviderGroup}
+                showNewChatAction={activeSession !== undefined}
                 thinkingLevel={currentThinkingLevel}
+                utilityActions={
+                  messages.length > 0 ? (
+                    <SessionUtilityActions
+                      isSharing={isSharePending}
+                      onShare={handleShareSession}
+                    />
+                  ) : null
+                }
               />
             </div>
           </div>
