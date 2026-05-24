@@ -6,6 +6,7 @@ import { WEB_EXTENSION_SETTINGS } from "../extensions/ui";
 import { SidebarInset, SidebarProvider } from "@webaura/ui/components/sidebar";
 import { AppSettingsDialog } from "@webaura/ui/components/settings-dialog";
 import { SettingsDialogProvider } from "@webaura/ui/components/settings-state";
+import { CustomCSSInjector } from "@webaura/ui/components/appearance-settings";
 import { ThemeProvider } from "@webaura/ui/components/theme-provider";
 import { Toaster } from "@webaura/ui/components/sonner";
 import { TooltipProvider } from "@webaura/ui/components/tooltip";
@@ -13,6 +14,7 @@ import { TooltipProvider } from "@webaura/ui/components/tooltip";
 export function RootAppChrome() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <CustomCSSInjector />
       <TooltipProvider>
         <RootGuard>
           <SidebarProvider>

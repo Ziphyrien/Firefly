@@ -1,7 +1,6 @@
 import { Button } from "@webaura/ui/components/button";
 import { Separator } from "@webaura/ui/components/separator";
 import { SidebarTrigger } from "@webaura/ui/components/sidebar";
-import { ThemeToggle } from "@webaura/ui/components/theme-toggle";
 import { useSettingsDialog } from "@webaura/ui/components/settings-state";
 import { Settings } from "lucide-react";
 
@@ -17,7 +16,7 @@ export function AppHeader() {
         <Button
           aria-label="Open settings"
           className="h-8 shadow-none"
-          onClick={() => settingsDialog.openSettings("providers")}
+          onClick={() => settingsDialog.openSettings("appearance")}
           size="icon-sm"
           variant="ghost"
         >
@@ -26,12 +25,10 @@ export function AppHeader() {
       </div>
       <div className="hidden items-center gap-2 px-3 md:flex">
         <Separator className="!h-6 !self-center" orientation="vertical" />
-        <ThemeToggle />
-        <Separator className="!h-6 !self-center" orientation="vertical" />
         <Button
           aria-label="Open settings"
           className="h-8 shadow-none"
-          onClick={() => settingsDialog.openSettings("providers")}
+          onClick={() => settingsDialog.openSettings("appearance")}
           size="icon-sm"
           variant="ghost"
         >

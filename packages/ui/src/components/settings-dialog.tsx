@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useRouterState } from "@tanstack/react-router";
 import type { SettingsSection } from "@webaura/ui/lib/search-state";
-import { BadgeCheck, Sparkles, Receipt, Globe, Database, HelpCircle } from "lucide-react";
+import { BadgeCheck, Sparkles, Palette, Receipt, Globe, Database, HelpCircle } from "lucide-react";
 import { CostsPanel } from "@webaura/ui/components/costs-panel";
 import { DataSettings } from "@webaura/ui/components/data-settings";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@webaura/ui/components/extensions-settings";
 import { ProviderSettings } from "@webaura/ui/components/provider-settings";
 import { ProxySettings } from "@webaura/ui/components/proxy-settings";
+import { AppearanceSettings } from "@webaura/ui/components/appearance-settings";
 import { Dialog, DialogContent, DialogTitle } from "@webaura/ui/components/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@webaura/ui/components/tabs";
 import {
@@ -44,6 +45,12 @@ const SETTINGS_SECTIONS: Array<SettingsSectionItem> = [
     icon: Sparkles,
     id: "extensions",
     label: "Extensions",
+  },
+  {
+    description: "Customize colors, themes, layout density, and styles",
+    icon: Palette,
+    id: "appearance",
+    label: "Appearance",
   },
   {
     description: "Session and daily usage totals",
@@ -168,6 +175,7 @@ export function AppSettingsDialog(props: {
                 {section === "extensions" ? (
                   <ExtensionsSettings extensions={props.extensionSettings} />
                 ) : null}
+                {section === "appearance" ? <AppearanceSettings /> : null}
                 {section === "proxy" ? <ProxySettings /> : null}
                 {section === "costs" ? <CostsPanel session={session} /> : null}
                 {section === "data" ? (props.dataPanel ?? <DataSettings />) : null}
