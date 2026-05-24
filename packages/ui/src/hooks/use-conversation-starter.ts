@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { runtimeClient } from "@webaura/pi/agent/runtime-client";
 import type { UserTurnInput } from "@webaura/pi/agent/user-turn-input";
@@ -13,8 +13,6 @@ import type { ProviderGroupId, ThinkingLevel } from "@webaura/pi/types/models";
 
 export function useConversationStarter() {
   const navigate = useNavigate();
-  const search = useSearch({ strict: false });
-  const sidebar = search.sidebar === "open" ? "open" : undefined;
   const [isStartingSession, setIsStartingSession] = React.useState(false);
 
   const startNewConversation = React.useCallback(
@@ -44,10 +42,7 @@ export function useConversationStarter() {
           params: {
             sessionId: session.id,
           },
-          search: {
-            q: undefined,
-            sidebar,
-          },
+          search: {},
           to: "/chat/$sessionId",
         });
 
@@ -64,7 +59,7 @@ export function useConversationStarter() {
         setIsStartingSession(false);
       }
     },
-    [isStartingSession, navigate, sidebar],
+    [isStartingSession, navigate],
   );
 
   return {

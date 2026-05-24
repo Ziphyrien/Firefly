@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useLiveQuery } from "dexie-react-hooks";
 import { toast } from "sonner";
 import { getFoldedToolResultIds } from "@webaura/pi/lib/chat-adapter";
@@ -176,9 +176,6 @@ function getLastAssistantMessage(
 
 export function Chat(props: ChatProps) {
   const navigate = useNavigate();
-  const search = useSearch({ strict: false });
-  const sidebar = search.sidebar === "open" ? "open" : undefined;
-  const q = typeof search.q === "string" && search.q.trim().length > 0 ? search.q : undefined;
   const loadedSessionState = useLiveQuery(async (): Promise<LoadedSessionState> => {
     if (!props.sessionId) {
       return { kind: "none" };
@@ -450,13 +447,10 @@ export function Chat(props: ChatProps) {
 
     void navigate({
       replace: true,
-      search: {
-        q: undefined,
-        sidebar,
-      },
+      search: {},
       to: "/chat",
     });
-  }, [loadedSessionState, navigate, sidebar]);
+  }, [loadedSessionState, navigate]);
 
   const persistDraft = React.useCallback((nextDraft: EmptyChatDraft) => {
     setDraft(nextDraft);
@@ -762,7 +756,6 @@ export function Chat(props: ChatProps) {
               <ChatComposer
                 composerDisabled={composerDisabled}
                 disabledReason={composerDisabledReason}
-                initialInput={messages.length === 0 ? q : undefined}
                 isStreaming={isStreaming}
                 model={currentModel}
                 onAbort={activeSession && activeComposerState?.canAbort ? runtime.abort : () => {}}

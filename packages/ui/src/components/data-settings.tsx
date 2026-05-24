@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useNavigate, useRouterState, useSearch } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Download, Trash2 } from "lucide-react";
 import { runtimeClient } from "@webaura/pi/agent/runtime-client";
@@ -43,19 +43,13 @@ export function DataSettings(_props: { canRequestSync?: boolean; syncEnabled?: b
   const currentMatch = useRouterState({
     select: (state) => state.matches[state.matches.length - 1],
   });
-  const search = useSearch({ strict: false });
   const [isExporting, setIsExporting] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
   const navigateAfterWipe = React.useCallback(() => {
-    const sidebar = search.sidebar === "open" ? "open" : undefined;
-
     if (currentMatch.routeId === "/chat/$sessionId") {
       void navigate({
-        search: {
-          q: undefined,
-          sidebar,
-        },
+        search: {},
         to: "/chat",
       });
       return;
@@ -63,24 +57,17 @@ export function DataSettings(_props: { canRequestSync?: boolean; syncEnabled?: b
 
     if (currentMatch.routeId === "/") {
       void navigate({
-        search: (prev) => ({
-          ...prev,
-          sidebar,
-        }),
+        search: {},
         to: ".",
       });
       return;
     }
 
     void navigate({
-      search: (prev) => ({
-        ...prev,
-        q: undefined,
-        sidebar,
-      }),
+      search: {},
       to: ".",
     });
-  }, [currentMatch.routeId, navigate, search.sidebar]);
+  }, [currentMatch.routeId, navigate]);
 
   const handleExport = React.useCallback(async () => {
     setIsExporting(true);

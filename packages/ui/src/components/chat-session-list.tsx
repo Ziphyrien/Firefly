@@ -28,10 +28,7 @@ import {
 } from "@webaura/ui/components/sidebar";
 import { Trash2, X } from "lucide-react";
 
-type SessionRouteSearch = {
-  q: string | undefined;
-  sidebar: "open" | undefined;
-};
+type SessionRouteSearch = Record<string, never>;
 
 type SessionLinkTarget =
   | {

@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "@tanstack/react-router";
+import { Outlet } from "@tanstack/react-router";
 import { AppHeader } from "./app-header";
 import { AppSidebar } from "./app-sidebar";
 import { RootGuard } from "./root-guard";
@@ -9,28 +9,13 @@ import { SettingsDialogProvider } from "@webaura/ui/components/settings-state";
 import { ThemeProvider } from "@webaura/ui/components/theme-provider";
 import { Toaster } from "@webaura/ui/components/sonner";
 import { TooltipProvider } from "@webaura/ui/components/tooltip";
-import { Route } from "../routes/__root";
 
 export function RootAppChrome() {
-  const navigate = useNavigate();
-  const search = Route.useSearch();
-
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <TooltipProvider>
         <RootGuard>
-          <SidebarProvider
-            onOpenChange={(open) => {
-              void navigate({
-                search: (prev) => ({
-                  ...prev,
-                  sidebar: open ? "open" : undefined,
-                }),
-                to: ".",
-              });
-            }}
-            open={search.sidebar === "open"}
-          >
+          <SidebarProvider>
             <SettingsDialogProvider>
               <div className="relative flex h-svh w-full overflow-hidden overscroll-none">
                 <AppSidebar />

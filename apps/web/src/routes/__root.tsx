@@ -1,12 +1,5 @@
 import * as React from "react";
-import {
-  ClientOnly,
-  HeadContent,
-  Link,
-  Scripts,
-  createRootRoute,
-  retainSearchParams,
-} from "@tanstack/react-router";
+import { ClientOnly, HeadContent, Link, Scripts, createRootRoute } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 
 const RootAppChrome = React.lazy(async () => {
@@ -14,21 +7,7 @@ const RootAppChrome = React.lazy(async () => {
   return { default: module.RootAppChrome };
 });
 
-type RootSearchInput = {
-  sidebar?: string;
-};
-
-type RootSearch = {
-  sidebar?: "open";
-};
-
 export const Route = createRootRoute({
-  validateSearch: (search: RootSearchInput): RootSearch => ({
-    sidebar: search.sidebar === "open" ? "open" : undefined,
-  }),
-  search: {
-    middlewares: [retainSearchParams(["sidebar"])],
-  },
   head: () => ({
     meta: [
       {
@@ -118,13 +97,7 @@ function NotFoundPage() {
       <p className="max-w-md text-xs text-muted-foreground">
         The route does not exist or the dev server reloaded while the router was resolving the page.
       </p>
-      <Link
-        className="text-xs underline underline-offset-4 hover:text-foreground"
-        search={{
-          sidebar: undefined,
-        }}
-        to="/"
-      >
+      <Link className="text-xs underline underline-offset-4 hover:text-foreground" to="/">
         Go to chat
       </Link>
     </div>

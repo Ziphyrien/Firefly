@@ -1,5 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { useNavigate, useRouterState, useSearch } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import type { MouseEvent } from "react";
 
 import { Sidebar, SidebarFooter, SidebarRail } from "@webaura/ui/components/sidebar";
@@ -19,7 +19,6 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
   const currentMatch = useRouterState({
     select: (state) => state.matches[state.matches.length - 1],
   });
-  const search = useSearch({ strict: false });
   const sessions = useLiveQuery(() => listSessions(), []);
   const leases = useLiveQuery(async () => await listSessionLeases(), []);
 
@@ -27,7 +26,6 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
   const leaseList = leases ?? [];
   const activeSessionId =
     currentMatch.routeId === "/chat/$sessionId" ? currentMatch.params.sessionId : "";
-  const sidebar = search.sidebar === "open" ? "open" : undefined;
   const activeSession = sessionList.find((session) => session.id === activeSessionId);
   const currentTabId = typeof window === "undefined" ? "" : getCurrentTabId();
   const runningSessionIds = sessionList
@@ -100,10 +98,7 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
       if (!nextSessionId) {
         await navigate({
           replace: true,
-          search: {
-            q: undefined,
-            sidebar,
-          },
+          search: {},
           to: "/chat",
         });
         return;
@@ -124,10 +119,7 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
           sessionId: nextSessionId,
         },
         replace: true,
-        search: {
-          q: undefined,
-          sidebar,
-        },
+        search: {},
         to: "/chat/$sessionId",
       });
     })();
@@ -138,20 +130,14 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
       <ChatSessionList
         activeSessionId={activeSessionId}
         createSessionTarget={{
-          search: {
-            q: undefined,
-            sidebar,
-          },
+          search: {},
           to: "/chat",
         }}
         getSessionTarget={(session) => ({
           params: {
             sessionId: session.id,
           },
-          search: {
-            q: undefined,
-            sidebar,
-          },
+          search: {},
           to: "/chat/$sessionId",
         })}
         lockedSessionIds={lockedSessionIds}
