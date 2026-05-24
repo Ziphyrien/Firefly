@@ -14,7 +14,6 @@ import type { ProviderGroupId, ThinkingLevel } from "@webaura/pi/types/models";
 export function useConversationStarter() {
   const navigate = useNavigate();
   const search = useSearch({ strict: false });
-  const settings = typeof search.settings === "string" ? search.settings : undefined;
   const sidebar = search.sidebar === "open" ? "open" : undefined;
   const [isStartingSession, setIsStartingSession] = React.useState(false);
 
@@ -47,7 +46,6 @@ export function useConversationStarter() {
           },
           search: {
             q: undefined,
-            settings,
             sidebar,
           },
           to: "/chat/$sessionId",
@@ -66,7 +64,7 @@ export function useConversationStarter() {
         setIsStartingSession(false);
       }
     },
-    [isStartingSession, navigate, settings, sidebar],
+    [isStartingSession, navigate, sidebar],
   );
 
   return {

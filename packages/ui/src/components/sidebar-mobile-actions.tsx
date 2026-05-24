@@ -1,9 +1,9 @@
 "use client";
 
-import { Link } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
 import { Icons } from "@webaura/ui/components/icons";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@webaura/ui/components/sidebar";
+import { useSettingsDialog } from "@webaura/ui/components/settings-state";
 
 type ThemePreference = "light" | "dark" | "system";
 
@@ -29,6 +29,7 @@ function getNextTheme(theme: ThemePreference): ThemePreference {
 
 /** Mobile sidebar only: links and actions that are hidden from the header on small screens. */
 export function SidebarMobileActions() {
+  const settingsDialog = useSettingsDialog();
   const { setTheme, theme } = useTheme();
   const currentTheme = normalizeTheme(theme);
   const nextTheme = getNextTheme(currentTheme);
@@ -52,17 +53,12 @@ export function SidebarMobileActions() {
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild className="h-9">
-            <Link
-              search={(prev) => ({
-                ...prev,
-                settings: "providers",
-              })}
-              to="."
-            >
-              <Icons.cog className="text-sidebar-foreground" />
-              <span>Settings</span>
-            </Link>
+          <SidebarMenuButton
+            className="h-9"
+            onClick={() => settingsDialog.openSettings("providers")}
+          >
+            <Icons.cog className="text-sidebar-foreground" />
+            <span>Settings</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

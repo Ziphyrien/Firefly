@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link, useNavigate, useRouterState, useSearch } from "@tanstack/react-router";
+import { useRouterState } from "@tanstack/react-router";
 import type { SettingsSection } from "@webaura/ui/lib/search-state";
 import { Icons } from "@webaura/ui/components/icons";
 import { CostsPanel } from "@webaura/ui/components/costs-panel";
@@ -22,8 +22,8 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "@webaura/ui/components/sidebar";
-import { isSettingsSection } from "@webaura/ui/lib/search-state";
 import { useSelectedSessionSummary } from "@webaura/pi/hooks/use-selected-session-summary";
+import { useSettingsDialog } from "@webaura/ui/components/settings-state";
 
 type SettingsSectionItem = {
   description: string;
@@ -77,44 +77,27 @@ export function AppSettingsDialog(props: {
   pricingLabel?: string;
   pricingPanel?: React.ReactNode;
 }) {
-  const navigate = useNavigate();
-  const search = useSearch({ strict: false });
+  const settingsDialog = useSettingsDialog();
   const currentMatch = useRouterState({
     select: (state) => state.matches[state.matches.length - 1],
   });
   const sessionId =
     currentMatch.routeId === "/chat/$sessionId" ? currentMatch.params.sessionId : undefined;
   const session = useSelectedSessionSummary(sessionId);
-  const requestedSection =
-    typeof search.settings === "string" && isSettingsSection(search.settings)
-      ? search.settings
-      : undefined;
-  const section =
-    requestedSection && SETTINGS_SECTIONS.some((item) => item.id === requestedSection)
-      ? requestedSection
-      : "providers";
-  const open = Boolean(requestedSection) && SETTINGS_SECTIONS.some((item) => item.id === section);
+  const section = SETTINGS_SECTIONS.some((item) => item.id === settingsDialog.section)
+    ? settingsDialog.section
+    : "providers";
   const activeSection =
     SETTINGS_SECTIONS.find((item) => item.id === section) ?? SETTINGS_SECTIONS[0];
-
-  const navigateWithSettings = (nextSection: SettingsSection | undefined) => {
-    void navigate({
-      search: (prev) => ({
-        ...prev,
-        settings: nextSection,
-      }),
-      to: ".",
-    });
-  };
 
   return (
     <Dialog
       onOpenChange={(nextOpen) => {
         if (!nextOpen) {
-          navigateWithSettings(undefined);
+          settingsDialog.closeSettings();
         }
       }}
-      open={open}
+      open={settingsDialog.open}
     >
       <DialogContent className="flex max-h-[90dvh] min-h-0 w-full max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(100%-2rem,36rem)] md:h-[620px] md:max-h-[620px] md:min-h-[620px] md:max-w-5xl">
         <DialogTitle className="sr-only">Settings</DialogTitle>
@@ -130,16 +113,10 @@ export function AppSettingsDialog(props: {
                     {SETTINGS_SECTIONS.map((item) => (
                       <SidebarMenuItem key={item.id}>
                         <SidebarMenuButton asChild isActive={section === item.id}>
-                          <Link
-                            search={(prev) => ({
-                              ...prev,
-                              settings: item.id,
-                            })}
-                            to="."
-                          >
+                          <button onClick={() => settingsDialog.setSection(item.id)} type="button">
                             <item.icon />
                             <span>{item.label}</span>
-                          </Link>
+                          </button>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
@@ -163,16 +140,10 @@ export function AppSettingsDialog(props: {
                         key={item.id}
                         value={item.id}
                       >
-                        <Link
-                          search={(prev) => ({
-                            ...prev,
-                            settings: item.id,
-                          })}
-                          to="."
-                        >
+                        <button onClick={() => settingsDialog.setSection(item.id)} type="button">
                           <item.icon className="size-4 shrink-0" />
                           {item.label}
-                        </Link>
+                        </button>
                       </TabsTrigger>
                     ))}
                   </TabsList>
@@ -190,7 +161,7 @@ export function AppSettingsDialog(props: {
                 {section === "providers" ? (
                   <ProviderSettings
                     onNavigateToProxy={() => {
-                      navigateWithSettings("proxy");
+                      settingsDialog.setSection("proxy");
                     }}
                   />
                 ) : null}

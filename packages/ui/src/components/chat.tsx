@@ -177,7 +177,6 @@ function getLastAssistantMessage(
 export function Chat(props: ChatProps) {
   const navigate = useNavigate();
   const search = useSearch({ strict: false });
-  const settings = typeof search.settings === "string" ? search.settings : undefined;
   const sidebar = search.sidebar === "open" ? "open" : undefined;
   const q = typeof search.q === "string" && search.q.trim().length > 0 ? search.q : undefined;
   const loadedSessionState = useLiveQuery(async (): Promise<LoadedSessionState> => {
@@ -453,12 +452,11 @@ export function Chat(props: ChatProps) {
       replace: true,
       search: {
         q: undefined,
-        settings,
         sidebar,
       },
       to: "/chat",
     });
-  }, [loadedSessionState, navigate, settings, sidebar]);
+  }, [loadedSessionState, navigate, sidebar]);
 
   const persistDraft = React.useCallback((nextDraft: EmptyChatDraft) => {
     setDraft(nextDraft);

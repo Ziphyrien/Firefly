@@ -54,7 +54,6 @@ export function DataSettings(_props: { canRequestSync?: boolean; syncEnabled?: b
       void navigate({
         search: {
           q: undefined,
-          settings: undefined,
           sidebar,
         },
         to: "/chat",
@@ -66,7 +65,6 @@ export function DataSettings(_props: { canRequestSync?: boolean; syncEnabled?: b
       void navigate({
         search: (prev) => ({
           ...prev,
-          settings: undefined,
           sidebar,
         }),
         to: ".",
@@ -78,7 +76,6 @@ export function DataSettings(_props: { canRequestSync?: boolean; syncEnabled?: b
       search: (prev) => ({
         ...prev,
         q: undefined,
-        settings: undefined,
         sidebar,
       }),
       to: ".",

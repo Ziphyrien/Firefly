@@ -7,7 +7,6 @@ import {
   createRootRoute,
   retainSearchParams,
 } from "@tanstack/react-router";
-import { parseSettingsSection } from "@webaura/ui/lib/search-state";
 import appCss from "../styles.css?url";
 
 const RootAppChrome = React.lazy(async () => {
@@ -16,22 +15,19 @@ const RootAppChrome = React.lazy(async () => {
 });
 
 type RootSearchInput = {
-  settings?: string;
   sidebar?: string;
 };
 
 type RootSearch = {
-  settings?: ReturnType<typeof parseSettingsSection>;
   sidebar?: "open";
 };
 
 export const Route = createRootRoute({
   validateSearch: (search: RootSearchInput): RootSearch => ({
-    settings: parseSettingsSection(search.settings),
     sidebar: search.sidebar === "open" ? "open" : undefined,
   }),
   search: {
-    middlewares: [retainSearchParams(["settings", "sidebar"])],
+    middlewares: [retainSearchParams(["sidebar"])],
   },
   head: () => ({
     meta: [
@@ -125,7 +121,6 @@ function NotFoundPage() {
       <Link
         className="text-xs underline underline-offset-4 hover:text-foreground"
         search={{
-          settings: undefined,
           sidebar: undefined,
         }}
         to="/"

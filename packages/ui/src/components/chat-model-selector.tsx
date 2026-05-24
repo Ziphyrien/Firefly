@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { useNavigate } from "@tanstack/react-router";
 import { CheckIcon, Plus } from "lucide-react";
 import { db } from "@webaura/db";
 import type { ProviderGroupId } from "@webaura/pi/types/models";
@@ -26,6 +25,7 @@ import {
   getVisibleProviderGroups,
 } from "@webaura/pi/models/catalog";
 import { cn } from "@webaura/ui/lib/utils";
+import { useSettingsDialog } from "@webaura/ui/components/settings-state";
 
 export function ChatModelSelector(props: {
   disabled?: boolean;
@@ -34,7 +34,7 @@ export function ChatModelSelector(props: {
   providerGroup: ProviderGroupId;
 }) {
   const [open, setOpen] = React.useState(false);
-  const navigate = useNavigate();
+  const settingsDialog = useSettingsDialog();
   const providerKeysResult = useLiveQuery(() => db.providerKeys.toArray(), []);
   const providerKeys = Array.isArray(providerKeysResult) ? providerKeysResult : [];
   const connectedProviders = getConnectedProviders(providerKeys);
@@ -97,13 +97,7 @@ export function ChatModelSelector(props: {
                 <ModelSelectorItem
                   className="gap-2"
                   onSelect={() => {
-                    void navigate({
-                      search: (prev) => ({
-                        ...prev,
-                        settings: "providers",
-                      }),
-                      to: ".",
-                    });
+                    settingsDialog.openSettings("providers");
                     setOpen(false);
                   }}
                   value="__add_provider__"

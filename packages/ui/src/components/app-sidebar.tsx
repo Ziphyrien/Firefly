@@ -27,7 +27,6 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
   const leaseList = leases ?? [];
   const activeSessionId =
     currentMatch.routeId === "/chat/$sessionId" ? currentMatch.params.sessionId : "";
-  const settings = typeof search.settings === "string" ? search.settings : undefined;
   const sidebar = search.sidebar === "open" ? "open" : undefined;
   const activeSession = sessionList.find((session) => session.id === activeSessionId);
   const currentTabId = typeof window === "undefined" ? "" : getCurrentTabId();
@@ -103,7 +102,6 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
           replace: true,
           search: {
             q: undefined,
-            settings,
             sidebar,
           },
           to: "/chat",
@@ -128,7 +126,6 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
         replace: true,
         search: {
           q: undefined,
-          settings,
           sidebar,
         },
         to: "/chat/$sessionId",
@@ -143,7 +140,6 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
         createSessionTarget={{
           search: {
             q: undefined,
-            settings,
             sidebar,
           },
           to: "/chat",
@@ -154,7 +150,6 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
           },
           search: {
             q: undefined,
-            settings,
             sidebar,
           },
           to: "/chat/$sessionId",

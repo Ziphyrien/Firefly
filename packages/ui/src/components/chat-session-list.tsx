@@ -27,11 +27,9 @@ import {
   SidebarSeparator,
 } from "@webaura/ui/components/sidebar";
 import { Trash2, X } from "lucide-react";
-import type { SettingsSection } from "@webaura/ui/lib/search-state";
 
 type SessionRouteSearch = {
   q: string | undefined;
-  settings: SettingsSection | undefined;
   sidebar: "open" | undefined;
 };
 

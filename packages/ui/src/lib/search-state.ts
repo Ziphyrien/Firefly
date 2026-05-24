@@ -18,7 +18,3 @@ export function isSettingsSection(value: string): value is SettingsSection {
     value === "about"
   );
 }
-
-export function parseSettingsSection(value: unknown): SettingsSection | undefined {
-  return typeof value === "string" && isSettingsSection(value) ? value : undefined;
-}
