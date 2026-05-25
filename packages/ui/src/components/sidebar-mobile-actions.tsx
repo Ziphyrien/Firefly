@@ -12,10 +12,7 @@ export function SidebarMobileActions() {
     <div className="md:hidden">
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton
-            className="h-9"
-            onClick={() => settingsDialog.openSettings("appearance")}
-          >
+          <SidebarMenuButton className="h-9" onClick={() => settingsDialog.openSettings()}>
             <Settings className="text-sidebar-foreground" />
             <span>Settings</span>
           </SidebarMenuButton>

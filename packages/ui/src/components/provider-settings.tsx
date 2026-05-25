@@ -27,7 +27,6 @@ import { Button } from "./button";
 import { Input } from "./input";
 import { Label } from "./label";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "./empty";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import {
   Plus,
@@ -77,15 +76,6 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
     };
   }, [proxySettingRows]);
 
-  // Reactive custom names for API keys stored in db.settings under "provider-custom-names"
-  const customNamesRecord = useLiveQuery(() => db.settings.get("provider-custom-names"));
-  const customNames = React.useMemo(() => {
-    if (customNamesRecord?.value && typeof customNamesRecord.value === "object") {
-      return customNamesRecord.value as Record<string, string>;
-    }
-    return {} as Record<string, string>;
-  }, [customNamesRecord]);
-
   const [devicePrompts, setDevicePrompts] = React.useState<
     Partial<Record<OAuthProviderId, DeviceCodePrompt>>
   >({});
@@ -106,12 +96,11 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
 
   // Selector & inline editing states for API keys
   const [selectedProviderToAdd, setSelectedProviderToAdd] = React.useState<string>("");
-  const [newKeyLabel, setNewKeyLabel] = React.useState<string>("");
   const [newKeyApiValue, setNewKeyApiValue] = React.useState<string>("");
+  const [isAddingApiKey, setIsAddingApiKey] = React.useState(false);
 
   // Inline card editing states
   const [editingProviderId, setEditingProviderId] = React.useState<ProviderId | undefined>();
-  const [editLabel, setEditLabel] = React.useState<string>("");
   const [editApiValue, setEditApiValue] = React.useState<string>("");
   const [visibleKeyProviderId, setVisibleKeyProviderId] = React.useState<ProviderId | undefined>();
 
@@ -210,28 +199,6 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
     setManualRedirectPrompt(undefined);
   };
 
-  // Helper to save a custom label/name for a provider key
-  const saveCustomName = async (providerId: string, name: string) => {
-    const record = await db.settings.get("provider-custom-names");
-    const current =
-      record?.value && typeof record.value === "object"
-        ? { ...(record.value as Record<string, string>) }
-        : {};
-
-    const trimmed = name.trim();
-    if (trimmed) {
-      current[providerId] = trimmed;
-    } else {
-      delete current[providerId];
-    }
-
-    await db.settings.put({
-      key: "provider-custom-names",
-      updatedAt: new Date().toISOString(),
-      value: current,
-    });
-  };
-
   // Save/Add API key handler
   const handleAddApiKey = async () => {
     const provider = selectedProviderToAdd as ProviderId;
@@ -249,10 +216,9 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
 
     try {
       await setProviderApiKey(provider, value);
-      await saveCustomName(provider, newKeyLabel);
       toast.success(`${apiKeyProviderLabel(provider)} API key saved successfully`);
       setNewKeyApiValue("");
-      setNewKeyLabel("");
+      setIsAddingApiKey(false);
     } catch {
       toast.error("Could not save API key");
     }
@@ -262,7 +228,6 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
   const handleClearApiKey = async (provider: ProviderId) => {
     try {
       await disconnectProvider(provider);
-      await saveCustomName(provider, "");
       toast.success(`${apiKeyProviderLabel(provider)} API key removed`);
     } catch {
       toast.error("Could not remove API key");
@@ -271,15 +236,18 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
 
   // Inline card edit save handler
   const handleSaveEdit = async (provider: ProviderId) => {
+    const value = editApiValue.trim();
+
+    if (!value) {
+      toast.warning("Enter a new API key first");
+      return;
+    }
+
     try {
-      if (editApiValue.trim()) {
-        await setProviderApiKey(provider, editApiValue.trim());
-      }
-      await saveCustomName(provider, editLabel);
+      await setProviderApiKey(provider, value);
       toast.success(`Updated ${apiKeyProviderLabel(provider)} settings`);
       setEditingProviderId(undefined);
       setEditApiValue("");
-      setEditLabel("");
     } catch {
       toast.error("Could not save updates");
     }
@@ -290,6 +258,10 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
       (item) => apiKeyProviders.includes(item.provider) && !item.value.startsWith("{"),
     );
   }, [providerKeys, apiKeyProviders]);
+
+  const editingSavedKey = React.useMemo(() => {
+    return activeSavedKeys.find((item) => item.provider === editingProviderId);
+  }, [activeSavedKeys, editingProviderId]);
 
   return (
     <div className="space-y-8">
@@ -482,59 +454,190 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
         </div>
 
         {/* List Active Configured Keys */}
-        {activeSavedKeys.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
-              Configured Keys ({activeSavedKeys.length})
-            </h4>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {activeSavedKeys.map((item) => {
-                const provider = item.provider;
-                const isEditing = editingProviderId === provider;
-                const savedLabel = customNames[provider] || apiKeyProviderLabel(provider);
-                const hasCustomName = Boolean(customNames[provider]);
-                const isVisible = visibleKeyProviderId === provider;
+        {activeSavedKeys.length > 0 || availableProviders.length > 0 ? (
+          editingSavedKey ? (
+            <Card size="sm" className="gap-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-1.5 text-sm font-semibold tracking-tight">
+                  <Edit2 className="size-3.5 shrink-0 text-muted-foreground" />
+                  Edit {apiKeyProviderLabel(editingSavedKey.provider)} Key
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Replace the locally stored API key for this provider.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                <div className="space-y-1.5">
+                  <Label
+                    className="text-[11px] text-muted-foreground"
+                    htmlFor={`edit-value-${editingSavedKey.provider}`}
+                  >
+                    New API Key
+                  </Label>
+                  <Input
+                    autoComplete="off"
+                    className="h-8 text-xs font-mono"
+                    id={`edit-value-${editingSavedKey.provider}`}
+                    onChange={(e) => setEditApiValue(e.target.value)}
+                    placeholder="Enter new API key"
+                    type="password"
+                    value={editApiValue}
+                  />
+                </div>
 
-                return (
-                  <Card key={provider} size="sm">
-                    {!isEditing ? (
-                      <CardHeader className="flex flex-row items-start justify-between pb-2">
-                        <div className="space-y-1 min-w-0 pr-2">
-                          <div className="flex items-center gap-1.5">
-                            <Key className="size-3.5 text-muted-foreground shrink-0" />
-                            <CardTitle className="text-sm font-semibold truncate leading-none">
-                              {savedLabel}
-                            </CardTitle>
-                          </div>
-                          {hasCustomName && (
-                            <CardDescription className="text-xs text-muted-foreground/80 font-mono truncate leading-none">
-                              Type: {apiKeyProviderLabel(provider)}
-                            </CardDescription>
-                          )}
-                          <div className="text-xs font-mono text-muted-foreground/70 flex items-center gap-1.5 pt-1.5 select-all">
-                            <span>{isVisible ? item.value : "••••••••••••••••••••"}</span>
-                            <button
-                              onClick={() =>
-                                setVisibleKeyProviderId(isVisible ? undefined : provider)
-                              }
-                              type="button"
-                              className="text-muted-foreground/80 hover:text-foreground p-0.5 transition-colors"
-                              title={isVisible ? "Hide API key" : "Show API key"}
-                            >
-                              {isVisible ? (
-                                <EyeOff className="size-3" />
-                              ) : (
-                                <Eye className="size-3" />
-                              )}
-                            </button>
-                          </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    onClick={() => setEditingProviderId(undefined)}
+                    size="sm"
+                    variant="outline"
+                    className="h-7 px-2.5 text-xs"
+                  >
+                    <X className="mr-1 size-3" /> Cancel
+                  </Button>
+                  <Button
+                    onClick={() => handleSaveEdit(editingSavedKey.provider)}
+                    size="sm"
+                    className="h-7 px-2.5 text-xs"
+                  >
+                    <Check className="mr-1 size-3" /> Save
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : isAddingApiKey || activeSavedKeys.length === 0 ? (
+            <Card size="sm" className="gap-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-1.5 text-sm font-semibold tracking-tight">
+                  <Plus className="size-3.5 shrink-0 text-muted-foreground" />
+                  Add API Key
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Choose a provider, then save its API key locally.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground" htmlFor="add-provider-select">
+                      Provider
+                    </Label>
+                    <Select value={selectedProviderToAdd} onValueChange={setSelectedProviderToAdd}>
+                      <SelectTrigger className="h-8 w-full border-border/80 bg-background text-xs">
+                        <SelectValue placeholder="Choose provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableProviders.map((provider) => (
+                          <SelectItem key={provider} value={provider}>
+                            {apiKeyProviderLabel(provider as ProviderId)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground" htmlFor="add-provider-key">
+                      API Key
+                    </Label>
+                    <Input
+                      autoComplete="off"
+                      className="h-8 border-border/80 bg-background text-xs font-mono"
+                      id="add-provider-key"
+                      onChange={(e) => setNewKeyApiValue(e.target.value)}
+                      placeholder="sk-..."
+                      type="password"
+                      value={newKeyApiValue}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  {activeSavedKeys.length > 0 && (
+                    <Button
+                      onClick={() => {
+                        setIsAddingApiKey(false);
+                        setNewKeyApiValue("");
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2.5 text-xs"
+                    >
+                      <X className="mr-1 size-3" /> Cancel
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleAddApiKey}
+                    size="sm"
+                    className="h-7 px-2.5 text-xs font-medium"
+                  >
+                    <Plus className="mr-1 size-3" /> Add Key
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card size="sm" className="gap-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-1.5 text-sm font-semibold tracking-tight">
+                  <Key className="size-3.5 shrink-0 text-muted-foreground" />
+                  Configured Keys ({activeSavedKeys.length})
+                </CardTitle>
+                {availableProviders.length > 0 && (
+                  <CardAction>
+                    <Button
+                      onClick={() => {
+                        setEditingProviderId(undefined);
+                        setIsAddingApiKey(true);
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2.5 text-xs"
+                    >
+                      <Plus className="mr-1 size-3" /> Add Key
+                    </Button>
+                  </CardAction>
+                )}
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-[minmax(6rem,0.8fr)_minmax(0,1fr)_auto] items-center gap-3 border-b border-border/70 pb-1.5 text-xs font-medium text-muted-foreground/80">
+                  <span>Provider</span>
+                  <span>Key</span>
+                  <span className="text-right">Actions</span>
+                </div>
+                <div className="divide-y divide-border/70">
+                  {activeSavedKeys.map((item) => {
+                    const provider = item.provider;
+                    const isVisible = visibleKeyProviderId === provider;
+
+                    return (
+                      <div
+                        className="grid grid-cols-[minmax(6rem,0.8fr)_minmax(0,1fr)_auto] items-center gap-3 py-1.5"
+                        key={provider}
+                      >
+                        <span className="truncate text-sm font-medium leading-none">
+                          {apiKeyProviderLabel(provider)}
+                        </span>
+                        <div className="flex min-w-0 items-center gap-1.5 font-mono text-xs text-muted-foreground/70 select-all">
+                          <span className="truncate">
+                            {isVisible ? item.value : "••••••••••••••••••••"}
+                          </span>
+                          <button
+                            onClick={() =>
+                              setVisibleKeyProviderId(isVisible ? undefined : provider)
+                            }
+                            type="button"
+                            className="shrink-0 p-0.5 text-muted-foreground/80 transition-colors hover:text-foreground"
+                            title={isVisible ? "Hide API key" : "Show API key"}
+                          >
+                            {isVisible ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                          </button>
                         </div>
 
-                        <CardAction className="flex gap-1.5">
+                        <div className="flex shrink-0 justify-end gap-1.5">
                           <Button
                             onClick={() => {
                               setEditingProviderId(provider);
-                              setEditLabel(customNames[provider] ?? "");
+                              setIsAddingApiKey(false);
                               setEditApiValue("");
                             }}
                             size="sm"
@@ -553,167 +656,15 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
                           >
                             <Trash2 className="size-3.5" />
                           </Button>
-                        </CardAction>
-                      </CardHeader>
-                    ) : (
-                      <CardContent className="space-y-3 border-t pt-3 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-foreground">
-                            Edit {apiKeyProviderLabel(provider)} Key
-                          </span>
-                          <span className="text-[10px] uppercase font-mono text-muted-foreground">
-                            Inline Editor
-                          </span>
                         </div>
-
-                        <div className="space-y-1.5">
-                          <Label
-                            className="text-[11px] text-muted-foreground"
-                            htmlFor={`edit-label-${provider}`}
-                          >
-                            Custom Name / Alias
-                          </Label>
-                          <Input
-                            autoComplete="off"
-                            className="h-8 text-xs"
-                            id={`edit-label-${provider}`}
-                            onChange={(e) => setEditLabel(e.target.value)}
-                            placeholder={apiKeyProviderLabel(provider)}
-                            value={editLabel}
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label
-                            className="text-[11px] text-muted-foreground"
-                            htmlFor={`edit-value-${provider}`}
-                          >
-                            Update API Key (Optional)
-                          </Label>
-                          <Input
-                            autoComplete="off"
-                            className="h-8 text-xs font-mono"
-                            id={`edit-value-${provider}`}
-                            onChange={(e) => setEditApiValue(e.target.value)}
-                            placeholder="Enter new key, or leave blank to keep current"
-                            type="password"
-                            value={editApiValue}
-                          />
-                        </div>
-
-                        <div className="flex gap-2 justify-end pt-1">
-                          <Button
-                            onClick={() => setEditingProviderId(undefined)}
-                            size="sm"
-                            variant="outline"
-                            className="h-7 text-xs px-2.5"
-                          >
-                            <X className="size-3 mr-1" /> Cancel
-                          </Button>
-                          <Button
-                            onClick={() => handleSaveEdit(provider)}
-                            size="sm"
-                            className="h-7 text-xs px-2.5"
-                          >
-                            <Check className="size-3 mr-1" /> Save
-                          </Button>
-                        </div>
-                      </CardContent>
-                    )}
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Add Provider Selector Form Card */}
-        {availableProviders.length > 0 ? (
-          <Card size="sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Plus className="size-4 text-muted-foreground" />
-                Configure New Provider
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Choose a provider, give the key an optional name, then save it locally.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground" htmlFor="add-provider-select">
-                    Provider
-                  </Label>
-                  <Select value={selectedProviderToAdd} onValueChange={setSelectedProviderToAdd}>
-                    <SelectTrigger className="w-full h-8 text-xs bg-background border-border/80">
-                      <SelectValue placeholder="Choose provider" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableProviders.map((provider) => (
-                        <SelectItem key={provider} value={provider}>
-                          {apiKeyProviderLabel(provider as ProviderId)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      </div>
+                    );
+                  })}
                 </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground" htmlFor="add-provider-label">
-                    Custom Alias / Nickname
-                  </Label>
-                  <Input
-                    autoComplete="off"
-                    className="h-8 text-xs bg-background border-border/80"
-                    id="add-provider-label"
-                    onChange={(e) => setNewKeyLabel(e.target.value)}
-                    placeholder={
-                      selectedProviderToAdd
-                        ? apiKeyProviderLabel(selectedProviderToAdd as ProviderId)
-                        : "e.g. My Work Account"
-                    }
-                    value={newKeyLabel}
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground" htmlFor="add-provider-key">
-                    API Key
-                  </Label>
-                  <Input
-                    autoComplete="off"
-                    className="h-8 text-xs font-mono bg-background border-border/80"
-                    id="add-provider-key"
-                    onChange={(e) => setNewKeyApiValue(e.target.value)}
-                    placeholder="sk-..."
-                    type="password"
-                    value={newKeyApiValue}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-1">
-                <Button
-                  onClick={handleAddApiKey}
-                  size="sm"
-                  className="h-8 text-xs px-3 bg-foreground text-primary-foreground hover:bg-foreground/90 font-medium"
-                >
-                  <Plus className="size-3.5 mr-1" /> Configure Provider
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>All providers are configured.</EmptyTitle>
-              <EmptyDescription>
-                You can edit existing API keys from their cards above.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        )}
+              </CardContent>
+            </Card>
+          )
+        ) : null}
       </section>
     </div>
   );

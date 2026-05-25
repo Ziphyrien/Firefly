@@ -142,7 +142,7 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
         <Button
           aria-label="Open settings"
           className="h-8 w-8 shadow-none text-muted-foreground hover:text-foreground shrink-0"
-          onClick={() => settingsDialog.openSettings("appearance")}
+          onClick={() => settingsDialog.openSettings()}
           size="icon-sm"
           variant="ghost"
         >
