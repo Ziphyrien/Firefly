@@ -1,6 +1,8 @@
 import * as React from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { PaperclipIcon } from "lucide-react";
+import { PaperclipIcon, SquarePen } from "lucide-react";
+import { Button } from "@firefly/ui/components/button";
 import { ChatModelSelector } from "./chat-model-selector";
 import type { ChatStatus } from "ai";
 import type { PromptInputMessage } from "@firefly/ui/components/ai-elements/prompt-input";
@@ -55,6 +57,7 @@ function ChatComposerInner(props: {
   onThinkingLevelChange: (level: ThinkingLevel) => Promise<void> | void;
   placeholder?: string;
   providerGroup: ProviderGroupId;
+  showNewChatAction?: boolean;
   thinkingLevel: ThinkingLevel;
   utilityActions?: React.ReactNode;
 }) {
@@ -103,11 +106,22 @@ function ChatComposerInner(props: {
 
   return (
     <div className="mx-auto grid w-full max-w-4xl gap-3">
-      {props.utilityActions ? (
-        <div className="flex items-center justify-end">
-          <div className="shrink-0">{props.utilityActions}</div>
-        </div>
-      ) : null}
+      <div
+        aria-hidden={!props.showNewChatAction && !props.utilityActions ? true : undefined}
+        className="flex min-h-8 items-center justify-between gap-2"
+      >
+        {props.showNewChatAction ? (
+          <Button asChild className="gap-1.5" size="sm" variant="outline">
+            <Link search={{}} to="/chat">
+              <SquarePen className="size-3.5" />
+              New Chat
+            </Link>
+          </Button>
+        ) : (
+          <span aria-hidden />
+        )}
+        {props.utilityActions ? <div className="shrink-0">{props.utilityActions}</div> : null}
+      </div>
       <PromptInput
         accept={SUPPORTED_ATTACHMENT_ACCEPT}
         filePickerTypes={SUPPORTED_ATTACHMENT_PICKER_TYPES}
@@ -218,6 +232,7 @@ export function ChatComposer(props: {
   onThinkingLevelChange: (level: ThinkingLevel) => Promise<void> | void;
   placeholder?: string;
   providerGroup: ProviderGroupId;
+  showNewChatAction?: boolean;
   thinkingLevel: ThinkingLevel;
   utilityActions?: React.ReactNode;
 }) {

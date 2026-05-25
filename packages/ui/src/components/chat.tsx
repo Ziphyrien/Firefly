@@ -856,6 +856,7 @@ export function Chat(props: ChatProps) {
                   });
                 }}
                 providerGroup={currentProviderGroup}
+                showNewChatAction={showSessionUtilityActions}
                 thinkingLevel={currentThinkingLevel}
                 utilityActions={
                   showSessionUtilityActions ? (
