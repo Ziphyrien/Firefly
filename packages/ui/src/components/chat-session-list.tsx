@@ -23,7 +23,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@firefly/ui/components/sidebar";
-import { Trash2, X } from "lucide-react";
+import { Loader2, Trash2, X } from "lucide-react";
 
 type SessionRouteSearch = Record<string, never>;
 
@@ -119,9 +119,9 @@ function renderSessions(props: {
                     Locked
                   </span>
                 ) : isRunning ? (
-                  <span className="ml-auto text-[10px] uppercase tracking-[0.14em] text-emerald-600">
-                    Live
-                  </span>
+                  <div className="ml-auto flex size-4 items-center justify-center delay-150 duration-200 animate-in fade-in">
+                    <Loader2 className="size-3 animate-spin text-muted-foreground" />
+                  </div>
                 ) : null}
               </Link>
             </SidebarMenuButton>
