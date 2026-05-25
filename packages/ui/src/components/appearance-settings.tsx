@@ -58,7 +58,7 @@ export function AppearanceSettings() {
   }, [localCss]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6">
       {/* Theme Choice - Select form to avoid floating single button clutter */}
       <div className="space-y-2">
         <Label htmlFor="theme-select" className="text-sm font-medium">

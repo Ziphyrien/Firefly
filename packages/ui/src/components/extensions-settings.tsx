@@ -27,6 +27,23 @@ type ExtensionCatalogItem = ExtensionSettingsEntry & {
   enabled: boolean;
 };
 
+type ExtensionCatalogCache = {
+  items: ExtensionCatalogItem[];
+  key: string;
+};
+
+let extensionCatalogCache: ExtensionCatalogCache | undefined;
+const extensionSettingsPanelCache = new Map<string, ExtensionSettingsPanel>();
+
+function getExtensionCatalogKey(extensions: readonly ExtensionSettingsEntry[]): string {
+  return extensions
+    .map(
+      (extension) =>
+        `${extension.manifest.id}:${extension.manifest.version}:${Boolean(extension.defaultEnabled)}`,
+    )
+    .join("|");
+}
+
 function ExtensionCard(props: {
   disabled?: boolean;
   item: ExtensionCatalogItem;
@@ -69,15 +86,17 @@ function ExtensionCard(props: {
 }
 
 function ExtensionSettingsPanelSlot(props: { disabled?: boolean; item: ExtensionCatalogItem }) {
-  const [Panel, setPanel] = React.useState<ExtensionSettingsPanel | undefined>();
+  const cachedPanel = extensionSettingsPanelCache.get(props.item.manifest.id);
+  const [Panel, setPanel] = React.useState<ExtensionSettingsPanel | undefined>(() => cachedPanel);
   const [loadError, setLoadError] = React.useState<string | undefined>();
 
   React.useEffect(() => {
     let disposed = false;
-    setPanel(undefined);
+    const cached = extensionSettingsPanelCache.get(props.item.manifest.id);
+    setPanel(() => cached);
     setLoadError(undefined);
 
-    if (!props.item.loadSettingsPanel) {
+    if (!props.item.loadSettingsPanel || cached) {
       return () => {
         disposed = true;
       };
@@ -88,6 +107,9 @@ function ExtensionSettingsPanelSlot(props: { disabled?: boolean; item: Extension
         const SettingsPanel = await props.item.loadSettingsPanel?.();
 
         if (!disposed) {
+          if (SettingsPanel) {
+            extensionSettingsPanelCache.set(props.item.manifest.id, SettingsPanel);
+          }
           setPanel(() => SettingsPanel);
         }
       } catch (error) {
@@ -118,11 +140,7 @@ function ExtensionSettingsPanelSlot(props: { disabled?: boolean; item: Extension
   }
 
   if (!Panel) {
-    return (
-      <Alert>
-        <AlertDescription>Loading settings for {props.item.manifest.name}...</AlertDescription>
-      </Alert>
-    );
+    return null;
   }
 
   return <Panel disabled={props.disabled} />;
@@ -133,13 +151,25 @@ export function ExtensionsSettings(props: {
   extensions?: readonly ExtensionSettingsEntry[];
 }) {
   const extensions = React.useMemo(() => props.extensions ?? [], [props.extensions]);
-  const [items, setItems] = React.useState<ExtensionCatalogItem[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const catalogKey = React.useMemo(() => getExtensionCatalogKey(extensions), [extensions]);
+  const [items, setItems] = React.useState<ExtensionCatalogItem[]>(() =>
+    extensionCatalogCache?.key === catalogKey ? extensionCatalogCache.items : [],
+  );
+  const [isLoading, setIsLoading] = React.useState(() => extensionCatalogCache?.key !== catalogKey);
   const [savingExtensionId, setSavingExtensionId] = React.useState<string | undefined>();
 
   React.useEffect(() => {
     let disposed = false;
-    setIsLoading(true);
+    const cached =
+      extensionCatalogCache?.key === catalogKey ? extensionCatalogCache.items : undefined;
+
+    if (cached) {
+      setItems(cached);
+      setIsLoading(false);
+    } else {
+      setItems([]);
+      setIsLoading(true);
+    }
 
     void (async () => {
       const catalog = await Promise.all(
@@ -153,6 +183,10 @@ export function ExtensionsSettings(props: {
         return;
       }
 
+      extensionCatalogCache = {
+        items: catalog,
+        key: catalogKey,
+      };
       setItems(catalog);
       setIsLoading(false);
     })();
@@ -160,35 +194,45 @@ export function ExtensionsSettings(props: {
     return () => {
       disposed = true;
     };
-  }, [extensions]);
+  }, [catalogKey, extensions]);
 
   const handleToggle = async (extensionId: string, enabled: boolean) => {
-    setItems((current) =>
-      current.map((item) =>
+    setItems((current) => {
+      const next = current.map((item) =>
         item.manifest.id === extensionId
           ? {
               ...item,
               enabled,
             }
           : item,
-      ),
-    );
+      );
+      extensionCatalogCache = {
+        items: next,
+        key: catalogKey,
+      };
+      return next;
+    });
     setSavingExtensionId(extensionId);
 
     try {
       await setExtensionEnabled(extensionId, enabled);
       toast.success(enabled ? "Extension enabled" : "Extension disabled");
     } catch {
-      setItems((current) =>
-        current.map((item) =>
+      setItems((current) => {
+        const next = current.map((item) =>
           item.manifest.id === extensionId
             ? {
                 ...item,
                 enabled: !enabled,
               }
             : item,
-        ),
-      );
+        );
+        extensionCatalogCache = {
+          items: next,
+          key: catalogKey,
+        };
+        return next;
+      });
       toast.error("Could not save extension setting");
     } finally {
       setSavingExtensionId(undefined);
@@ -206,11 +250,6 @@ export function ExtensionsSettings(props: {
       </Alert>
 
       <div className="flex flex-col gap-3">
-        {isLoading ? (
-          <Alert>
-            <AlertDescription>Loading extensions...</AlertDescription>
-          </Alert>
-        ) : null}
         {!isLoading && items.length === 0 ? (
           <Empty className="border">
             <EmptyHeader>

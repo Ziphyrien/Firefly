@@ -1,20 +1,35 @@
 import * as React from "react";
 import { toast } from "sonner";
-import { DEFAULT_PROXY_URL, getProxyConfig, setProxyConfig } from "@firefly/pi/proxy/settings";
+import {
+  DEFAULT_PROXY_URL,
+  getProxyConfig,
+  setProxyConfig,
+  type ProxyConfig,
+} from "@firefly/pi/proxy/settings";
 import { Button } from "./button";
 import { Input } from "./input";
 import { Label } from "./label";
 import { Switch } from "./switch";
 import { Card, CardHeader, CardDescription, CardContent } from "./card";
 
+let proxyConfigCache: ProxyConfig | undefined;
+
 export function ProxySettings(props: { disabled?: boolean }) {
-  const [enabled, setEnabled] = React.useState(false);
-  const [url, setUrl] = React.useState(DEFAULT_PROXY_URL);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [enabled, setEnabled] = React.useState(() => proxyConfigCache?.enabled ?? true);
+  const [url, setUrl] = React.useState(() => proxyConfigCache?.url ?? DEFAULT_PROXY_URL);
+  const [isLoading, setIsLoading] = React.useState(() => !proxyConfigCache);
   const [isSaving, setIsSaving] = React.useState(false);
 
   React.useEffect(() => {
     let disposed = false;
+
+    if (proxyConfigCache) {
+      setEnabled(proxyConfigCache.enabled);
+      setUrl(proxyConfigCache.url);
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+    }
 
     void (async () => {
       const config = await getProxyConfig();
@@ -23,6 +38,7 @@ export function ProxySettings(props: { disabled?: boolean }) {
         return;
       }
 
+      proxyConfigCache = config;
       setEnabled(config.enabled);
       setUrl(config.url);
       setIsLoading(false);
@@ -32,6 +48,10 @@ export function ProxySettings(props: { disabled?: boolean }) {
       disposed = true;
     };
   }, []);
+
+  if (isLoading && !proxyConfigCache) {
+    return null;
+  }
 
   return (
     <div className="space-y-4">
@@ -89,10 +109,12 @@ export function ProxySettings(props: { disabled?: boolean }) {
               onClick={async () => {
                 setIsSaving(true);
                 try {
-                  await setProxyConfig({
+                  const nextConfig = {
                     enabled,
                     url: url.trim(),
-                  });
+                  };
+                  await setProxyConfig(nextConfig);
+                  proxyConfigCache = nextConfig;
                   toast.success("Proxy settings saved");
                 } catch {
                   toast.error("Could not save proxy settings");

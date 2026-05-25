@@ -60,7 +60,9 @@ function apiKeyProviderLabel(provider: ProviderId): string {
 }
 
 export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
-  const providerKeys = useLiveQuery(() => db.providerKeys.toArray(), []) ?? [];
+  const providerKeysResult = useLiveQuery(() => db.providerKeys.toArray(), []);
+  const providerKeysLoaded = providerKeysResult !== undefined;
+  const providerKeys = providerKeysResult ?? [];
   const proxySettingRows = useLiveQuery(() =>
     db.settings.where("key").anyOf([PROXY_ENABLED_KEY, PROXY_URL_KEY]).toArray(),
   );
@@ -109,13 +111,21 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
 
   // Filter down to API key providers that do NOT have a saved key yet
   const availableProviders = React.useMemo(() => {
+    if (!providerKeysLoaded) {
+      return [];
+    }
+
     return apiKeyProviders.filter(
       (provider) => !providerKeys.some((k) => k.provider === provider && !k.value.startsWith("{")),
     );
-  }, [apiKeyProviders, providerKeys]);
+  }, [apiKeyProviders, providerKeys, providerKeysLoaded]);
 
   // Maintain selected provider choice to always point to first available item when options change
   React.useEffect(() => {
+    if (!providerKeysLoaded) {
+      return;
+    }
+
     if (availableProviders.length > 0) {
       if (!availableProviders.includes(selectedProviderToAdd as any)) {
         setSelectedProviderToAdd(availableProviders[0]);
@@ -123,7 +133,7 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
     } else {
       setSelectedProviderToAdd("");
     }
-  }, [availableProviders, selectedProviderToAdd]);
+  }, [availableProviders, providerKeysLoaded, selectedProviderToAdd]);
 
   const handleOAuthLogin = async (provider: OAuthProviderId) => {
     setLoggingInProvider(provider);
@@ -454,7 +464,7 @@ export function ProviderSettings(props: { onNavigateToProxy?: () => void }) {
         </div>
 
         {/* List Active Configured Keys */}
-        {activeSavedKeys.length > 0 || availableProviders.length > 0 ? (
+        {providerKeysLoaded && (activeSavedKeys.length > 0 || availableProviders.length > 0) ? (
           editingSavedKey ? (
             <Card size="sm" className="gap-2">
               <CardHeader>

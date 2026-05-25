@@ -168,21 +168,29 @@ export function AppSettingsDialog(props: {
                 </div>
               </div>
               <div className="max-w-3xl">
-                {section === "providers" ? (
+                <div hidden={section !== "providers"}>
                   <ProviderSettings
                     onNavigateToProxy={() => {
                       settingsDialog.setSection("proxy");
                     }}
                   />
-                ) : null}
-                {section === "extensions" ? (
+                </div>
+                <div hidden={section !== "extensions"}>
                   <ExtensionsSettings extensions={props.extensionSettings} />
-                ) : null}
-                {section === "appearance" ? <AppearanceSettings /> : null}
-                {section === "proxy" ? <ProxySettings /> : null}
-                {section === "costs" ? <CostsPanel session={session} /> : null}
-                {section === "data" ? (props.dataPanel ?? <DataSettings />) : null}
-                {section === "about" ? <AboutPanel /> : null}
+                </div>
+                <div hidden={section !== "appearance"}>
+                  <AppearanceSettings />
+                </div>
+                <div hidden={section !== "proxy"}>
+                  <ProxySettings />
+                </div>
+                <div hidden={section !== "costs"}>
+                  <CostsPanel session={session} />
+                </div>
+                <div hidden={section !== "data"}>{props.dataPanel ?? <DataSettings />}</div>
+                <div hidden={section !== "about"}>
+                  <AboutPanel />
+                </div>
               </div>
             </div>
           </main>
