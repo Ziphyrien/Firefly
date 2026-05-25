@@ -135,11 +135,14 @@ export async function createSessionForChat(base?: SessionCreationBase): Promise<
     );
   }
 
-  return createSession({
+  const session = createSession({
     model: base.model,
     providerGroup: base.providerGroup ?? getDefaultProviderGroup(base.provider),
     thinkingLevel: base.thinkingLevel,
   });
+
+  await persistSessionSnapshot(session);
+  return session;
 }
 
 export async function deleteSessionAndResolveNext(params: {

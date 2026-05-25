@@ -19,6 +19,7 @@ export function useConversationStarter() {
     async (input: {
       initialPrompt: string | UserTurnInput;
       model: string;
+      onSessionCreated?: (sessionId: string) => void;
       providerGroup: ProviderGroupId;
       thinkingLevel: ThinkingLevel;
     }) => {
@@ -36,8 +37,10 @@ export function useConversationStarter() {
           thinkingLevel: input.thinkingLevel,
         };
         const session = await createSessionForChat(base);
+        input.onSessionCreated?.(session.id);
 
-        await runtimeClient.startInitialTurn(session, input.initialPrompt);
+        const initialTurn = runtimeClient.startInitialTurn(session, input.initialPrompt);
+
         await navigate({
           params: {
             sessionId: session.id,
@@ -46,6 +49,7 @@ export function useConversationStarter() {
           to: "/chat/$sessionId",
         });
 
+        await initialTurn;
         void persistLastUsedSessionSettings(session);
         return session;
       } catch (error) {

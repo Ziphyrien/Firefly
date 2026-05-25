@@ -96,41 +96,40 @@ export function AppSidebar({ showGetPro = true }: { showGetPro?: boolean } = {})
   const handleDeleteSession = (sessionId: string) => {
     void (async () => {
       const wasSelected = sessionId === activeSessionId;
-      const { nextSessionId } = await deleteSessionAndResolveNext({
+      const nextSessionId = sessionList.find((session) => session.id !== sessionId)?.id;
+
+      if (wasSelected) {
+        if (!nextSessionId) {
+          await navigate({
+            replace: true,
+            search: {},
+            to: "/chat",
+          });
+        } else {
+          const nextMetadata = sessionList.find((session) => session.id === nextSessionId);
+
+          if (nextMetadata) {
+            await persistLastUsedSessionSettings({
+              model: nextMetadata.model,
+              provider: nextMetadata.provider,
+              providerGroup: nextMetadata.providerGroup,
+            });
+          }
+
+          await navigate({
+            params: {
+              sessionId: nextSessionId,
+            },
+            replace: true,
+            search: {},
+            to: "/chat/$sessionId",
+          });
+        }
+      }
+
+      await deleteSessionAndResolveNext({
         sessionId,
         siblingSessions: sessionList,
-      });
-
-      if (!wasSelected) {
-        return;
-      }
-
-      if (!nextSessionId) {
-        await navigate({
-          replace: true,
-          search: {},
-          to: "/chat",
-        });
-        return;
-      }
-
-      const nextMetadata = sessionList.find((session) => session.id === nextSessionId);
-
-      if (nextMetadata) {
-        await persistLastUsedSessionSettings({
-          model: nextMetadata.model,
-          provider: nextMetadata.provider,
-          providerGroup: nextMetadata.providerGroup,
-        });
-      }
-
-      await navigate({
-        params: {
-          sessionId: nextSessionId,
-        },
-        replace: true,
-        search: {},
-        to: "/chat/$sessionId",
       });
     })();
   };

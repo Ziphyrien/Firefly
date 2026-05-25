@@ -18,7 +18,11 @@ import {
 import { Button } from "@firefly/ui/components/button";
 import { ChatEmptyState } from "./chat-empty-state";
 import { ChatMessage as ChatMessageBlock } from "./chat-message";
-import type { UserTurnInput } from "@firefly/pi/agent/user-turn-input";
+import {
+  createUserMessageFromTurnInput,
+  type UserTurnInput,
+} from "@firefly/pi/agent/user-turn-input";
+import { createId } from "@firefly/pi/lib/ids";
 import type { ProviderGroupId, ThinkingLevel } from "@firefly/pi/types/models";
 import type { AssistantMessage, DisplayChatMessage } from "@firefly/pi/types/chat";
 import {
@@ -77,7 +81,12 @@ type LoadedSessionState =
   | { kind: "missing" }
   | { kind: "none" };
 
-type ChatPanelMode = "empty" | "messages" | "starting" | "streaming_pending";
+type ChatPanelMode = "empty" | "messages" | "pending" | "starting" | "streaming_pending";
+
+type PendingFirstMessage = {
+  message: DisplayChatMessage;
+  sessionId?: string;
+};
 
 export interface ChatProps {
   sessionId?: string;
@@ -114,10 +123,15 @@ function LoadingState({ label }: { label: string }) {
 
 function getChatPanelMode(input: {
   hasAssistantMessage: boolean;
+  isSessionPending: boolean;
   isStartingSession: boolean;
   isStreaming: boolean;
   messageCount: number;
 }): ChatPanelMode {
+  if (input.isSessionPending && input.messageCount === 0) {
+    return "pending";
+  }
+
   if (input.isStartingSession && input.messageCount === 0) {
     return "starting";
   }
@@ -207,7 +221,11 @@ export function Chat(props: ChatProps) {
     undefined,
   );
   const [isSharePending, setIsSharePending] = React.useState(false);
+  const [pendingFirstMessage, setPendingFirstMessage] = React.useState<
+    PendingFirstMessage | undefined
+  >(undefined);
   const isSharePendingRef = React.useRef(false);
+  const firstSendInFlightRef = React.useRef(false);
   const runtime = useRuntimeSession(props.sessionId);
   const { isStartingSession, startNewConversation } = useConversationStarter();
   const ownership = useSessionOwnership(
@@ -247,6 +265,18 @@ export function Chat(props: ChatProps) {
     () => getConnectedProviders(providerKeys),
     [providerKeys],
   );
+  const messages = sessionViewModel?.displayMessages ?? [];
+  const displayMessages = React.useMemo(() => {
+    if (!pendingFirstMessage || messages.length > 0) {
+      return messages;
+    }
+
+    if (props.sessionId && pendingFirstMessage.sessionId !== props.sessionId) {
+      return messages;
+    }
+
+    return [pendingFirstMessage.message];
+  }, [messages, pendingFirstMessage, props.sessionId]);
 
   React.useEffect(() => {
     if (!defaults) {
@@ -255,6 +285,20 @@ export function Chat(props: ChatProps) {
 
     setDraft((currentDraft) => currentDraft ?? defaults);
   }, [defaults]);
+
+  React.useEffect(() => {
+    if (!pendingFirstMessage?.sessionId) {
+      return;
+    }
+
+    if (props.sessionId !== pendingFirstMessage.sessionId) {
+      return;
+    }
+
+    if (messages.length > 0) {
+      setPendingFirstMessage(undefined);
+    }
+  }, [messages.length, pendingFirstMessage, props.sessionId]);
 
   React.useEffect(() => {
     if (activeSession || !draft) {
@@ -281,13 +325,18 @@ export function Chat(props: ChatProps) {
     });
   }, [activeSession, connectedProviders, draft]);
 
-  const messages = sessionViewModel?.displayMessages ?? [];
   const hasAssistantMessage = React.useMemo(
     () => messages.some((message) => message.role === "assistant"),
     [messages],
   );
-  const foldedToolResultIds = React.useMemo(() => getFoldedToolResultIds(messages), [messages]);
-  const lastAssistantMessage = React.useMemo(() => getLastAssistantMessage(messages), [messages]);
+  const foldedToolResultIds = React.useMemo(
+    () => getFoldedToolResultIds(displayMessages),
+    [displayMessages],
+  );
+  const lastAssistantMessage = React.useMemo(
+    () => getLastAssistantMessage(displayMessages),
+    [displayMessages],
+  );
   const lastAssistantMessageId = React.useMemo(
     () => lastAssistantMessage?.id,
     [lastAssistantMessage],
@@ -478,12 +527,49 @@ export function Chat(props: ChatProps) {
         return;
       }
 
-      await startNewConversation({
-        initialPrompt: input,
-        model: draft.model,
-        providerGroup: draft.providerGroup,
-        thinkingLevel: draft.thinkingLevel,
-      });
+      if (firstSendInFlightRef.current) {
+        return;
+      }
+
+      firstSendInFlightRef.current = true;
+
+      try {
+        const optimisticMessage = await createUserMessageFromTurnInput({
+          id: createId(),
+          input,
+          timestamp: Date.now(),
+        });
+
+        if (optimisticMessage) {
+          setPendingFirstMessage({ message: optimisticMessage });
+        }
+
+        void startNewConversation({
+          initialPrompt: input,
+          model: draft.model,
+          onSessionCreated: (sessionId) => {
+            if (!optimisticMessage) {
+              return;
+            }
+
+            setPendingFirstMessage((current) =>
+              current?.message.id === optimisticMessage.id ? { ...current, sessionId } : current,
+            );
+          },
+          providerGroup: draft.providerGroup,
+          thinkingLevel: draft.thinkingLevel,
+        })
+          .catch(() => {
+            setPendingFirstMessage(undefined);
+          })
+          .finally(() => {
+            firstSendInFlightRef.current = false;
+          });
+      } catch (error) {
+        firstSendInFlightRef.current = false;
+        setPendingFirstMessage(undefined);
+        throw error;
+      }
     },
     [draft, startNewConversation],
   );
@@ -578,15 +664,17 @@ export function Chat(props: ChatProps) {
       });
   }, [activeSession?.model, activeSession?.provider, activeSession?.title, draft?.model, messages]);
 
-  if (loadedSessionState === undefined) {
-    return <LoadingState label="Loading session..." />;
+  const isSessionPending = props.sessionId !== undefined && loadedSessionState === undefined;
+  const isFirstMessagePending =
+    props.sessionId !== undefined &&
+    props.sessionId === pendingFirstMessage?.sessionId &&
+    messages.length === 0;
+
+  if (loadedSessionState?.kind === "missing") {
+    return null;
   }
 
-  if (loadedSessionState.kind === "missing") {
-    return <LoadingState label="Loading session..." />;
-  }
-
-  if (!activeSession && !draft) {
+  if (!activeSession && !draft && !isSessionPending) {
     return <LoadingState label="Loading composer..." />;
   }
 
@@ -597,17 +685,20 @@ export function Chat(props: ChatProps) {
     draft?.providerGroup ??
     getVisibleProviderGroups(connectedProviders)[0];
   const currentThinkingLevel = activeSession?.thinkingLevel ?? draft?.thinkingLevel ?? "medium";
-  const isStreaming =
-    activeSession !== undefined ? (activeComposerState?.isStreaming ?? false) : isStartingSession;
+  const isStreaming = activeComposerState?.isStreaming ?? false;
   const composerDisabled = activeComposerState?.disabled === true;
   const composerDisabledReason = activeComposerState?.disabledReason;
+  const showSessionUtilityActions =
+    activeSession !== undefined || pendingFirstMessage !== undefined || messages.length > 0;
   const chatPanelMode = getChatPanelMode({
     hasAssistantMessage,
-    isStartingSession: false,
+    isSessionPending: isSessionPending || isFirstMessagePending,
+    isStartingSession,
     isStreaming: displayConversationStreaming,
-    messageCount: messages.length,
+    messageCount: displayMessages.length,
   });
   const isChatEmpty = chatPanelMode === "empty";
+  const shouldHideChatPanel = chatPanelMode === "pending" || chatPanelMode === "starting";
 
   return (
     <div
@@ -648,7 +739,7 @@ export function Chat(props: ChatProps) {
       <Conversation className="min-h-0 flex-1">
         <ConversationContent
           className={`mx-auto w-full max-w-4xl px-4 py-6 ${
-            messages.length === 0 ? "min-h-full" : ""
+            displayMessages.length === 0 ? "min-h-full" : ""
           }`}
         >
           {bannerState?.kind === "remote-live" ? (
@@ -662,21 +753,21 @@ export function Chat(props: ChatProps) {
               {lastProgressLabel ? ` Last progress ${lastProgressLabel}.` : ""}
             </div>
           ) : null}
-          {chatPanelMode === "starting" ? null : chatPanelMode === "streaming_pending" ? (
+          {shouldHideChatPanel ? null : chatPanelMode === "streaming_pending" ? (
             <div className="mb-4 flex justify-start">
               <StatusShimmer>Assistant is streaming...</StatusShimmer>
             </div>
           ) : chatPanelMode === "empty" ? (
             <ChatEmptyState />
           ) : (
-            messages.map((message, index) => {
+            displayMessages.map((message, index) => {
               if (message.role === "toolResult" && foldedToolResultIds.has(message.id)) {
                 return null;
               }
 
               return (
                 <ChatMessageBlock
-                  followingMessages={messages.slice(index + 1)}
+                  followingMessages={displayMessages.slice(index + 1)}
                   isStreamingReasoning={
                     displayConversationStreaming &&
                     message.role === "assistant" &&
@@ -690,7 +781,7 @@ export function Chat(props: ChatProps) {
           )}
         </ConversationContent>
         <ConversationScrollButton className="z-[15]" />
-        {messages.length > 0 ? (
+        {displayMessages.length > 0 ? (
           <>
             <ProgressiveBlur className="z-[5]" height="32px" position="top" />
             <ProgressiveBlur
@@ -767,8 +858,9 @@ export function Chat(props: ChatProps) {
                 providerGroup={currentProviderGroup}
                 thinkingLevel={currentThinkingLevel}
                 utilityActions={
-                  messages.length > 0 ? (
+                  showSessionUtilityActions ? (
                     <SessionUtilityActions
+                      disabled={messages.length === 0}
                       isSharing={isSharePending}
                       onShare={handleShareSession}
                     />
