@@ -23,7 +23,6 @@
     "typebox": "1.1.24"
   },
   "devDependencies": {
-    "@firefly/config": "workspace:*",
     "@types/react": "catalog:",
     "typescript": "^5",
     "vite": "catalog:"

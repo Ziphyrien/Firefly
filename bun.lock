@@ -6,7 +6,6 @@
       "name": "firefly",
       "devDependencies": {
         "@changesets/cli": "^2.30.0",
-        "@firefly/config": "workspace:*",
         "@types/node": "catalog:",
         "fake-indexeddb": "^6.2.5",
         "turbo": "^2.8.12",
@@ -44,7 +43,6 @@
         "tailwindcss": "catalog:",
       },
       "devDependencies": {
-        "@firefly/config": "workspace:*",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/react": "^16.3.2",
         "@types/react": "catalog:",
@@ -57,10 +55,6 @@
         "vite-plus": "catalog:",
       },
     },
-    "packages/config": {
-      "name": "@firefly/config",
-      "version": "0.0.0",
-    },
     "packages/db": {
       "name": "@firefly/db",
       "version": "0.0.0",
@@ -69,7 +63,6 @@
         "dexie-cloud-addon": "^4.4.10",
       },
       "devDependencies": {
-        "@firefly/config": "workspace:*",
         "typescript": "^5",
       },
     },
@@ -86,7 +79,6 @@
         "typebox": "1.1.24",
       },
       "devDependencies": {
-        "@firefly/config": "workspace:*",
         "@types/react": "catalog:",
         "typescript": "^5",
         "vite": "catalog:",
@@ -111,7 +103,6 @@
         "xlsx": "^0.18.5",
       },
       "devDependencies": {
-        "@firefly/config": "workspace:*",
         "@types/react": "catalog:",
         "typescript": "^5",
       },
@@ -167,7 +158,6 @@
         "vaul": "^1.1.2",
       },
       "devDependencies": {
-        "@firefly/config": "workspace:*",
         "@types/react": "catalog:",
         "@types/react-dom": "catalog:",
         "tailwindcss": "catalog:",
@@ -467,8 +457,6 @@
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.27.5", "", { "os": "win32", "cpu": "x64" }, "sha512-PWypQR+d4FLfkhBIV+/kHsUELAnMpx1bRvvsn3p+/sAERbnCzFrtDRG2Xw5n+2zPxBK2+iaP+vetsRl4Ti7WgA=="],
 
     "@exodus/bytes": ["@exodus/bytes@1.15.0", "", { "peerDependencies": { "@noble/hashes": "^1.8.0 || ^2.0.0" }, "optionalPeers": ["@noble/hashes"] }, "sha512-UY0nlA+feH81UGSHv92sLEPLCeZFjXOuHhrIo0HQydScuQc8s0A7kL/UdgwgDq8g8ilksmuoF35YVTNphV2aBQ=="],
-
-    "@firefly/config": ["@firefly/config@workspace:packages/config"],
 
     "@firefly/db": ["@firefly/db@workspace:packages/db"],
 

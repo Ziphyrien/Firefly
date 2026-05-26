@@ -28,7 +28,6 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@firefly/config": "workspace:*",
     "@types/react": "catalog:",
     "typescript": "^5"
   }

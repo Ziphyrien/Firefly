@@ -17,7 +17,6 @@
     "dexie-cloud-addon": "^4.4.10"
   },
   "devDependencies": {
-    "@firefly/config": "workspace:*",
     "typescript": "^5"
   }
 }
