@@ -3,7 +3,7 @@ import {
   isOAuthCredentials,
   parseOAuthCredentials,
   serializeOAuthCredentials,
-} from "@/auth/oauth-types";
+} from "@/pi/auth/oauth-types";
 
 describe("oauth type helpers", () => {
   it("serializes and parses OAuth credentials", () => {

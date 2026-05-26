@@ -1,15 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { TurnEventStore } from "@/agent/turn-event-store";
-import {
-  db,
-  deleteAllLocalData,
-  getDailyCost,
-  getSessionMessages,
-  getSessionRuntime,
-} from "@firefly/db";
-import type { AssistantMessage, ToolResultMessage } from "@/types/chat";
-import type { SessionData, SessionRuntimeRow } from "@/types/storage";
-import { createEmptyUsage } from "@/types/models";
+import { TurnEventStore } from "@/pi/agent/turn-event-store";
+import { db, deleteAllLocalData, getDailyCost, getSessionMessages, getSessionRuntime } from "@/db";
+import type { AssistantMessage, ToolResultMessage } from "@/pi/types/chat";
+import type { SessionData, SessionRuntimeRow } from "@/db/types";
+import { createEmptyUsage } from "@/pi/types/models";
 
 function createSession(id = "session-1"): SessionData {
   return {

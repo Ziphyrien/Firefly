@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { cleanup } from "@testing-library/react";
 import { afterAll, afterEach } from "vite-plus/test";
-import { db } from "@firefly/db";
+import { db } from "@/db";
 
 Object.defineProperty(window, "matchMedia", {
   configurable: true,

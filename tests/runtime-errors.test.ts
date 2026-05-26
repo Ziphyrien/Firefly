@@ -3,12 +3,12 @@ import {
   BusyRuntimeError,
   MissingSessionRuntimeError,
   StreamInterruptedRuntimeError,
-} from "@/agent/runtime-command-errors";
+} from "@/pi/agent/runtime-command-errors";
 import {
   buildSystemMessage,
   classifyRuntimeError,
   USER_ABORT_NOTICE_MESSAGE,
-} from "@/agent/runtime-errors";
+} from "@/pi/agent/runtime-errors";
 
 describe("classifyRuntimeError", () => {
   it("detects busy runtime errors", () => {

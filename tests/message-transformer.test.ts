@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { toOpenAIResponsesInput, webMessageTransformer } from "@/agent/message-transformer";
+import { toOpenAIResponsesInput, webMessageTransformer } from "@/pi/agent/message-transformer";
 
 describe("webMessageTransformer", () => {
   it("forwards only llm-compatible message roles with orphan tool results removed", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
-import { messagesToMarkdown } from "@/lib/copy-session-markdown";
-import type { ChatMessage } from "@/types/chat";
-import { createEmptyUsage } from "@/types/models";
+import { messagesToMarkdown } from "@/pi/lib/copy-session-markdown";
+import type { ChatMessage } from "@/pi/types/chat";
+import { createEmptyUsage } from "@/pi/types/models";
 
 function buildMessages(): ChatMessage[] {
   return [

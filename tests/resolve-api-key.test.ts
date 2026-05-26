@@ -13,7 +13,7 @@ const getProviderKey = vi.fn(async (provider: string) => providerKeyRows.get(pro
 const oauthRefresh = vi.fn();
 const getProxyConfig = vi.fn();
 
-vi.mock("@firefly/db", () => ({
+vi.mock("@/db", () => ({
   db: {
     providerKeys: {},
     settings: {
@@ -39,11 +39,11 @@ vi.mock("@firefly/db", () => ({
   setProviderKey,
 }));
 
-vi.mock("@/auth/oauth-refresh", () => ({
+vi.mock("@/pi/auth/oauth-refresh", () => ({
   oauthRefresh,
 }));
 
-vi.mock("@/proxy/settings", () => ({
+vi.mock("@/pi/proxy/settings", () => ({
   getProxyConfig,
 }));
 
@@ -58,13 +58,13 @@ describe("resolveStoredApiKey", () => {
   });
 
   it("returns plain api keys unchanged", async () => {
-    const { resolveStoredApiKey } = await import("@/auth/resolve-api-key");
+    const { resolveStoredApiKey } = await import("@/pi/auth/resolve-api-key");
 
     await expect(resolveStoredApiKey("sk-test", "openai-codex")).resolves.toBe("sk-test");
   });
 
   it("refreshes expiring OAuth credentials and stores the update", async () => {
-    const { resolveStoredApiKey } = await import("@/auth/resolve-api-key");
+    const { resolveStoredApiKey } = await import("@/pi/auth/resolve-api-key");
     getProxyConfig.mockResolvedValue({
       enabled: true,
       url: "https://proxy.example/proxy",
@@ -111,7 +111,7 @@ describe("resolveStoredApiKey", () => {
   });
 
   it("serializes concurrent oauth refreshes for the same provider", async () => {
-    const { resolveStoredApiKey } = await import("@/auth/resolve-api-key");
+    const { resolveStoredApiKey } = await import("@/pi/auth/resolve-api-key");
     getProxyConfig.mockResolvedValue({
       enabled: false,
       url: "https://proxy.example/proxy",
@@ -150,7 +150,7 @@ describe("resolveStoredApiKey", () => {
   });
 
   it("passes a proxy url when oauth refresh is enabled", async () => {
-    const { resolveStoredApiKey } = await import("@/auth/resolve-api-key");
+    const { resolveStoredApiKey } = await import("@/pi/auth/resolve-api-key");
     getProxyConfig.mockResolvedValue({
       enabled: true,
       url: "https://proxy.example/proxy",
@@ -186,7 +186,7 @@ describe("resolveStoredApiKey", () => {
   });
 
   it("keeps oauth refresh direct when proxy is disabled", async () => {
-    const { resolveStoredApiKey } = await import("@/auth/resolve-api-key");
+    const { resolveStoredApiKey } = await import("@/pi/auth/resolve-api-key");
     getProxyConfig.mockResolvedValue({
       enabled: false,
       url: "https://proxy.example/proxy",
@@ -219,7 +219,7 @@ describe("resolveStoredApiKey", () => {
   });
 
   it("returns undefined when no provider key is stored", async () => {
-    const { resolveApiKeyForProvider } = await import("@/auth/resolve-api-key");
+    const { resolveApiKeyForProvider } = await import("@/pi/auth/resolve-api-key");
 
     await expect(resolveApiKeyForProvider("opencode")).resolves.toBeUndefined();
   });

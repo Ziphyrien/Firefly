@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { buildProxiedUrl } from "@/proxy/url";
-import { postTokenRequest } from "@/auth/oauth-utils";
+import { buildProxiedUrl } from "@/pi/proxy/url";
+import { postTokenRequest } from "@/pi/auth/oauth-utils";
 
 const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>();
 

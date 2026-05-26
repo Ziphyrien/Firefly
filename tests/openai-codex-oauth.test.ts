@@ -5,7 +5,7 @@ const generateState = vi.fn();
 const openPopup = vi.fn();
 const postTokenRequest = vi.fn();
 
-vi.mock("@/auth/oauth-utils", () => ({
+vi.mock("@/pi/auth/oauth-utils", () => ({
   generatePKCE,
   generateState,
   parseAuthorizationInput: (input: string) => {
@@ -18,7 +18,7 @@ vi.mock("@/auth/oauth-utils", () => ({
   postTokenRequest,
 }));
 
-vi.mock("@/auth/popup-flow", () => ({
+vi.mock("@/pi/auth/popup-flow", () => ({
   openPopup,
 }));
 
@@ -64,7 +64,7 @@ describe("openai codex oauth", () => {
       refresh_token: "refresh-1",
     });
 
-    const { loginOpenAICodex } = await import("@/auth/providers/openai-codex");
+    const { loginOpenAICodex } = await import("@/pi/auth/providers/openai-codex");
     const credentials = await loginOpenAICodex("http://localhost/auth/callback", {
       onManualRedirect: async () => "http://localhost:1455/auth/callback?code=code-1&state=state-1",
       proxyUrl: "https://proxy.example/proxy",
@@ -98,7 +98,7 @@ describe("openai codex oauth", () => {
       refresh_token: "refresh-2",
     });
 
-    const { refreshOpenAICodex } = await import("@/auth/providers/openai-codex");
+    const { refreshOpenAICodex } = await import("@/pi/auth/providers/openai-codex");
     const credentials = await refreshOpenAICodex(
       {
         access: "old-access",
@@ -140,7 +140,7 @@ describe("openai codex oauth", () => {
       refresh_token: "refresh-1",
     });
 
-    const { loginOpenAICodex } = await import("@/auth/providers/openai-codex");
+    const { loginOpenAICodex } = await import("@/pi/auth/providers/openai-codex");
 
     await expect(
       loginOpenAICodex("http://localhost/auth/callback", {
@@ -157,7 +157,7 @@ describe("openai codex oauth", () => {
       refresh_token: "refresh-2",
     });
 
-    const { refreshOpenAICodex } = await import("@/auth/providers/openai-codex");
+    const { refreshOpenAICodex } = await import("@/pi/auth/providers/openai-codex");
 
     await expect(
       refreshOpenAICodex({

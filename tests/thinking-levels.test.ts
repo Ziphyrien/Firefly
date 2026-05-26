@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
-import { clampThinkingLevel, getAvailableThinkingLevels } from "@/agent/thinking-levels";
-import { getModel } from "@/models/catalog";
+import { clampThinkingLevel, getAvailableThinkingLevels } from "@/pi/agent/thinking-levels";
+import { getModel } from "@/pi/models/catalog";
 
 describe("thinking levels", () => {
   it("reflects model-specific thinking levels from the pi-ai registry", () => {

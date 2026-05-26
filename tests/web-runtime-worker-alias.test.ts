@@ -4,11 +4,9 @@ import { describe, expect, it } from "vite-plus/test";
 
 describe("web runtime worker alias", () => {
   it("routes the package runtime worker client through the web wrapper", () => {
-    const configSource = readFileSync(join(process.cwd(), "apps/web/vite.config.ts"), "utf8");
+    const configSource = readFileSync(join(process.cwd(), "vite.config.ts"), "utf8");
 
-    expect(configSource).toContain('"@firefly/pi/agent/runtime-worker-client": fileURLToPath(');
-    expect(configSource).toContain(
-      'new URL("./src/agent/runtime-worker-client.ts", import.meta.url)',
-    );
+    expect(configSource).toContain('find: "@/pi/agent/runtime-worker-client"');
+    expect(configSource).toContain('replacement: fromRoot("./src/agent/runtime-worker-client.ts")');
   });
 });

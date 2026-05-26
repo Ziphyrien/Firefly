@@ -8,18 +8,18 @@ const loginOpenAICodex = vi.fn();
 const refreshGitHubCopilot = vi.fn();
 const refreshOpenAICodex = vi.fn();
 
-vi.mock("@firefly/db", () => ({
+vi.mock("@/db", () => ({
   deleteProviderKey,
   getProviderKey,
   setProviderKey,
 }));
 
-vi.mock("@/auth/providers/github-copilot", () => ({
+vi.mock("@/pi/auth/providers/github-copilot", () => ({
   loginGitHubCopilot,
   refreshGitHubCopilot,
 }));
 
-vi.mock("@/auth/providers/openai-codex", () => ({
+vi.mock("@/pi/auth/providers/openai-codex", () => ({
   loginOpenAICodex,
   refreshOpenAICodex,
 }));
@@ -36,7 +36,7 @@ describe("auth service", () => {
   });
 
   it("persists provider api keys", async () => {
-    const { setProviderApiKey } = await import("@/auth/auth-service");
+    const { setProviderApiKey } = await import("@/pi/auth/auth-service");
 
     await setProviderApiKey("openai-codex", "sk-test");
     expect(setProviderKey).toHaveBeenCalledWith("openai-codex", "sk-test");
@@ -51,7 +51,7 @@ describe("auth service", () => {
       refresh: "refresh",
     });
 
-    const { loginAndStoreOAuthProvider } = await import("@/auth/auth-service");
+    const { loginAndStoreOAuthProvider } = await import("@/pi/auth/auth-service");
 
     await expect(
       loginAndStoreOAuthProvider("openai-codex", "https://example.com/callback"),
@@ -79,7 +79,7 @@ describe("auth service", () => {
       value: '{"providerId":"openai-codex"}',
     });
 
-    const { getProviderAuthState } = await import("@/auth/auth-service");
+    const { getProviderAuthState } = await import("@/pi/auth/auth-service");
 
     await expect(getProviderAuthState("openai-codex")).resolves.toMatchObject({
       authKind: "oauth",
@@ -89,7 +89,7 @@ describe("auth service", () => {
   });
 
   it("disconnects a provider", async () => {
-    const { disconnectProvider } = await import("@/auth/auth-service");
+    const { disconnectProvider } = await import("@/pi/auth/auth-service");
 
     await disconnectProvider("openai-codex");
     expect(deleteProviderKey).toHaveBeenCalledWith("openai-codex");
@@ -109,7 +109,7 @@ describe("auth service", () => {
       refresh: "next-refresh",
     });
 
-    const { oauthLogin, oauthRefresh } = await import("@/auth/auth-service");
+    const { oauthLogin, oauthRefresh } = await import("@/pi/auth/auth-service");
     const proxyOptions = { proxyUrl: "https://proxy.example/proxy" };
 
     await oauthLogin("openai-codex", "https://example.com/callback", undefined, proxyOptions);

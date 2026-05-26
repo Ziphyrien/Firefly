@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vite-plus/test";
-import { db } from "@firefly/db";
-import { createEmptyUsage } from "@/types/models";
-import type { SessionData } from "@/types/storage";
+import { db } from "@/db";
+import { createEmptyUsage } from "@/pi/types/models";
+import type { SessionData } from "@/db/types";
 
 describe("session-service", () => {
   beforeEach(async () => {
@@ -29,7 +29,7 @@ describe("session-service", () => {
 
     await db.sessions.put(session);
 
-    const { loadSession } = await import("@/sessions/session-service");
+    const { loadSession } = await import("@/pi/sessions/session-service");
     const loadedSession = await loadSession("session-resolved");
 
     expect(loadedSession).toEqual(session);

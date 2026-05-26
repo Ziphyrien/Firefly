@@ -10,11 +10,11 @@ describe("extension architecture boundaries", () => {
   it("keeps core extension runtime free of concrete GitHub extension imports", async () => {
     const files = await Promise.all(
       [
-        "packages/pi/src/extensions/runtime.ts",
-        "packages/pi/src/extensions/runtime-provider.ts",
-        "packages/pi/src/extensions/settings.ts",
-        "packages/pi/src/extensions/registry.ts",
-        "packages/pi/src/agent/session-worker-coordinator.ts",
+        "src/pi/extensions/runtime.ts",
+        "src/pi/extensions/runtime-provider.ts",
+        "src/pi/extensions/settings.ts",
+        "src/pi/extensions/registry.ts",
+        "src/pi/agent/session-worker-coordinator.ts",
       ].map((filePath) => readProjectFile(filePath)),
     );
 
@@ -26,9 +26,9 @@ describe("extension architecture boundaries", () => {
   it("keeps shared settings UI free of concrete GitHub settings panels", async () => {
     const files = await Promise.all(
       [
-        "packages/ui/src/components/extensions-settings.tsx",
-        "packages/ui/src/components/settings-dialog.tsx",
-        "packages/ui/src/lib/search-state.ts",
+        "src/ui/components/extensions-settings.tsx",
+        "src/ui/components/settings-dialog.tsx",
+        "src/ui/lib/search-state.ts",
       ].map((filePath) => readProjectFile(filePath)),
     );
 
@@ -37,25 +37,14 @@ describe("extension architecture boundaries", () => {
     );
   });
 
-  it("exports extension packages instead of internal extension files", async () => {
-    const packageJson = JSON.parse(await readProjectFile("packages/extensions/package.json")) as {
-      exports: Record<string, unknown>;
-    };
-
-    expect(Object.keys(packageJson.exports)).toEqual(["./github"]);
-    expect(packageJson.exports).not.toHaveProperty("./github/runtime");
-    expect(packageJson.exports).not.toHaveProperty("./github/token");
-    expect(packageJson.exports).not.toHaveProperty("./github/ui");
-  });
-
   it("installs concrete GitHub extension packages only in the app composition layer", async () => {
-    const runtimeInstall = await readProjectFile("apps/web/src/extensions/runtime.ts");
-    const uiInstall = await readProjectFile("apps/web/src/extensions/ui.tsx");
+    const runtimeInstall = await readProjectFile("src/extensions/runtime.ts");
+    const uiInstall = await readProjectFile("src/extensions/ui.tsx");
 
-    expect(runtimeInstall).toContain("@firefly/extensions/github");
-    expect(uiInstall).toContain("@firefly/extensions/github");
+    expect(runtimeInstall).toContain("@/extensions/github");
+    expect(uiInstall).toContain("@/extensions/github");
     expect(`${runtimeInstall}\n${uiInstall}`).not.toMatch(
-      /@firefly\/extensions\/github\/(runtime|token|ui|manifest)/,
+      /@\/extensions\/github\/(runtime|token|ui|manifest)/,
     );
   });
 });

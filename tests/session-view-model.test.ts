@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vite-plus/test";
-import { loadSessionViewModel } from "@/sessions/session-view-model";
-import { db, deleteAllLocalData, putSession, putSessionRuntime } from "@firefly/db";
-import type { AssistantMessage } from "@/types/chat";
-import type { MessageRow, SessionData, SessionRuntimeRow } from "@/types/storage";
-import { createEmptyUsage } from "@/types/models";
+import { loadSessionViewModel } from "@/pi/sessions/session-view-model";
+import { db, deleteAllLocalData, putSession, putSessionRuntime } from "@/db";
+import type { AssistantMessage } from "@/pi/types/chat";
+import type { MessageRow, SessionData, SessionRuntimeRow } from "@/db/types";
+import { createEmptyUsage } from "@/pi/types/models";
 
 function createSession(id = "session-1"): SessionData {
   return {

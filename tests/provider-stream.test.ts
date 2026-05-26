@@ -3,22 +3,23 @@ import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
 import type * as PiAi from "@earendil-works/pi-ai";
 import type { AssistantMessage as PiAssistantMessage } from "@earendil-works/pi-ai";
-import { getModel } from "@/models/catalog";
-import { createEmptyUsage } from "@/types/models";
-import { buildProxiedUrl } from "@/proxy/url";
+import { getModel } from "@/pi/models/catalog";
+import { createEmptyUsage } from "@/pi/types/models";
+import { buildProxiedUrl } from "@/pi/proxy/url";
 
 const { getProxyConfig, streamSimple } = vi.hoisted(() => ({
   getProxyConfig: vi.fn(),
   streamSimple: vi.fn(),
 }));
 
-vi.mock("@/proxy/settings", () => ({
+vi.mock("@/pi/proxy/settings", () => ({
   getProxyConfig,
 }));
 
-vi.mock("@/agent/provider-proxy", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/agent/provider-proxy")>("@/agent/provider-proxy");
+vi.mock("@/pi/agent/provider-proxy", async () => {
+  const actual = await vi.importActual<typeof import("@/pi/agent/provider-proxy")>(
+    "@/pi/agent/provider-proxy",
+  );
 
   return {
     ...actual,
@@ -163,7 +164,7 @@ describe("provider stream", () => {
       }),
     );
 
-    const { streamChatWithPiAgent } = await import("@/agent/provider-stream");
+    const { streamChatWithPiAgent } = await import("@/pi/agent/provider-stream");
     const model = getModel("openai-codex", "gpt-5.1-codex-mini");
     const stream = await streamChatWithPiAgent(
       model,
@@ -234,7 +235,7 @@ describe("provider stream", () => {
       }),
     );
 
-    const { streamChatWithPiAgent } = await import("@/agent/provider-stream");
+    const { streamChatWithPiAgent } = await import("@/pi/agent/provider-stream");
     const model = getModel("opencode", "gpt-5-nano");
     const stream = await streamChatWithPiAgent(
       model,
@@ -318,7 +319,7 @@ describe("provider stream", () => {
       }),
     );
 
-    const { streamChatWithPiAgent } = await import("@/agent/provider-stream");
+    const { streamChatWithPiAgent } = await import("@/pi/agent/provider-stream");
     const model = getModel("opencode", "gpt-5-nano");
     const eventStream = await streamChatWithPiAgent(
       model,
@@ -415,7 +416,7 @@ describe("provider stream", () => {
       }),
     );
 
-    const { streamChatWithPiAgent } = await import("@/agent/provider-stream");
+    const { streamChatWithPiAgent } = await import("@/pi/agent/provider-stream");
     const model = getModel("opencode", "gpt-5-nano");
     const eventStream = await streamChatWithPiAgent(
       model,

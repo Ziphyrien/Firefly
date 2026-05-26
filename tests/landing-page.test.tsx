@@ -8,14 +8,14 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
-vi.mock("@firefly/ui/components/button", () => ({
+vi.mock("@/ui/components/button", () => ({
   Button: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) =>
     asChild ? children : <button type="button">{children}</button>,
 }));
 
 describe("LandingPage", () => {
   it("links directly into plain chat", async () => {
-    const { LandingPage } = await import("@/components/landing-page");
+    const { LandingPage } = await import("@/ui/components/landing-page");
 
     render(<LandingPage />);
 

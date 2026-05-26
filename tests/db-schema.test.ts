@@ -1,6 +1,6 @@
 import Dexie from "dexie";
 import { afterEach, describe, expect, it } from "vite-plus/test";
-import { DB_NAME, registerAppDbSchema } from "@firefly/db";
+import { DB_NAME, registerAppDbSchema } from "@/db";
 
 const dbs: Dexie[] = [];
 

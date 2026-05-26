@@ -1,6 +1,6 @@
 import { webcrypto } from "node:crypto";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
-import { db, setSetting } from "@firefly/db";
+import { db, setSetting } from "@/db";
 import {
   buildNostrShareEvents,
   browserNostrRelayDiscovery,
@@ -16,9 +16,9 @@ import {
   type NostrRelayDiscovery,
   type NostrRelayProbeResult,
   type NostrRelayTransport,
-} from "@firefly/pi/lib/share";
-import { createEmptyUsage } from "@firefly/pi/types/models";
-import type { DisplayChatMessage } from "@firefly/pi/types/chat";
+} from "@/pi/lib/share";
+import { createEmptyUsage } from "@/pi/types/models";
+import type { DisplayChatMessage } from "@/pi/types/chat";
 
 class FakeRelayDiscovery implements NostrRelayDiscovery {
   readonly probes: string[] = [];

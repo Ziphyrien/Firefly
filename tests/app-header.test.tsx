@@ -11,24 +11,24 @@ vi.mock("@tanstack/react-router", () => ({
   }: React.PropsWithChildren<Record<string, unknown>>) => React.createElement("a", props, children),
 }));
 
-vi.mock("@firefly/ui/components/button", () => ({
+vi.mock("@/ui/components/button", () => ({
   Button: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) =>
     asChild ? children : React.createElement("button", undefined, children),
 }));
 
-vi.mock("@firefly/ui/components/separator", () => ({
+vi.mock("@/ui/components/separator", () => ({
   Separator: () => null,
 }));
 
-vi.mock("@firefly/ui/components/sidebar", () => ({
+vi.mock("@/ui/components/sidebar", () => ({
   SidebarTrigger: () => React.createElement("button", { type: "button" }, "Sidebar"),
 }));
 
-vi.mock("@firefly/ui/components/theme-toggle", () => ({
+vi.mock("@/ui/components/theme-toggle", () => ({
   ThemeToggle: () => React.createElement("button", { type: "button" }, "Theme"),
 }));
 
-vi.mock("@firefly/ui/components/tooltip", () => ({
+vi.mock("@/ui/components/tooltip", () => ({
   Tooltip: ({ children }: { children: React.ReactNode }) =>
     React.createElement("div", undefined, children),
   TooltipContent: ({ children }: { children: React.ReactNode }) =>

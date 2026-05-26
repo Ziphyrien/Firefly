@@ -33,7 +33,7 @@ vi.mock("dexie-react-hooks", () => ({
   useLiveQuery: (query: () => unknown) => query(),
 }));
 
-vi.mock("@firefly/db", () => ({
+vi.mock("@/db", () => ({
   db: {
     providerKeys: {
       toArray: () => state.providerKeys,
@@ -49,7 +49,7 @@ vi.mock("@firefly/db", () => ({
   },
 }));
 
-vi.mock("@firefly/pi/models/provider-registry", () => ({
+vi.mock("@/pi/models/provider-registry", () => ({
   getOAuthProvidersForSettings: () => ["github-copilot", "openai-codex"],
   getProviderGroupMetadata: (provider: string) => ({
     label:
@@ -62,7 +62,7 @@ vi.mock("@firefly/pi/models/provider-registry", () => ({
   getSortedApiKeyProvidersForSettings: () => [] as string[],
 }));
 
-vi.mock("@firefly/pi/proxy/settings", () => ({
+vi.mock("@/pi/proxy/settings", () => ({
   DEFAULT_PROXY_URL: "https://proxy.example/proxy",
   PROXY_ENABLED_KEY: "proxy-enabled",
   PROXY_URL_KEY: "proxy-url",
@@ -72,11 +72,11 @@ vi.mock("@firefly/pi/proxy/settings", () => ({
   }),
 }));
 
-vi.mock("@firefly/pi/auth/oauth-types", () => ({
+vi.mock("@/pi/auth/oauth-types", () => ({
   isOAuthCredentials: (value: string) => value.trim().startsWith("{"),
 }));
 
-vi.mock("@firefly/pi/auth/auth-service", () => ({
+vi.mock("@/pi/auth/auth-service", () => ({
   disconnectProvider: async (provider: string) => {
     state.providerKeys = state.providerKeys.filter((record) => record.provider !== provider);
   },
@@ -149,7 +149,7 @@ vi.mock("@firefly/pi/auth/auth-service", () => ({
   setProviderApiKey,
 }));
 
-vi.mock("@firefly/ui/components/button", () => ({
+vi.mock("@/ui/components/button", () => ({
   Button: ({
     children,
     disabled,
@@ -172,12 +172,12 @@ vi.mock("@firefly/ui/components/button", () => ({
     ),
 }));
 
-vi.mock("@firefly/ui/components/input", () => ({
+vi.mock("@/ui/components/input", () => ({
   Input: ({ value, onChange, placeholder, type }: React.ComponentProps<"input">) =>
     React.createElement("input", { onChange, placeholder, type, value }),
 }));
 
-vi.mock("@firefly/ui/components/item", () => {
+vi.mock("@/ui/components/item", () => {
   const Passthrough = ({ children }: { children: React.ReactNode }) =>
     React.createElement("div", undefined, children);
 
@@ -209,7 +209,7 @@ describe("provider settings", () => {
   });
 
   it("starts browser OAuth login and stores the provider row", async () => {
-    const { ProviderSettings } = await import("@/components/provider-settings");
+    const { ProviderSettings } = await import("@/ui/components/provider-settings");
     const { rerender } = render(React.createElement(ProviderSettings));
 
     fireEvent.click(screen.getAllByRole("button", { name: "Sign in" })[1]);
@@ -232,7 +232,7 @@ describe("provider settings", () => {
 
   it("shows the manual redirect prompt for localhost OAuth callbacks", async () => {
     state.requireManualRedirect = true;
-    const { ProviderSettings } = await import("@/components/provider-settings");
+    const { ProviderSettings } = await import("@/ui/components/provider-settings");
     render(React.createElement(ProviderSettings));
 
     fireEvent.click(screen.getAllByRole("button", { name: "Sign in" })[1]);
@@ -253,7 +253,7 @@ describe("provider settings", () => {
 
   it("shows the Copilot device code while login is pending", async () => {
     state.holdLogin = true;
-    const { ProviderSettings } = await import("@/components/provider-settings");
+    const { ProviderSettings } = await import("@/ui/components/provider-settings");
     render(React.createElement(ProviderSettings));
 
     fireEvent.click(screen.getAllByRole("button", { name: "Sign in" })[0]);
@@ -265,7 +265,7 @@ describe("provider settings", () => {
 
   it("shows an inline error when browser OAuth fails", async () => {
     state.failLogin = true;
-    const { ProviderSettings } = await import("@/components/provider-settings");
+    const { ProviderSettings } = await import("@/ui/components/provider-settings");
     render(React.createElement(ProviderSettings));
 
     fireEvent.click(screen.getAllByRole("button", { name: "Sign in" })[1]);
@@ -287,7 +287,7 @@ describe("provider settings", () => {
       },
     ];
 
-    const { ProviderSettings } = await import("@/components/provider-settings");
+    const { ProviderSettings } = await import("@/ui/components/provider-settings");
 
     render(React.createElement(ProviderSettings));
 

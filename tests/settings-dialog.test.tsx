@@ -42,27 +42,27 @@ vi.mock("@tanstack/react-router", () => ({
   useSearch: () => state.search,
 }));
 
-vi.mock("@/hooks/use-selected-session-summary", () => ({
+vi.mock("@/pi/hooks/use-selected-session-summary", () => ({
   useSelectedSessionSummary: () => undefined,
 }));
 
-vi.mock("@/components/provider-settings", () => ({
+vi.mock("@/ui/components/provider-settings", () => ({
   ProviderSettings: () => React.createElement("div", undefined, "providers"),
 }));
 
-vi.mock("@/components/extensions-settings", () => ({
+vi.mock("@/ui/components/extensions-settings", () => ({
   ExtensionsSettings: () => React.createElement("div", undefined, "extensions"),
 }));
 
-vi.mock("@/components/proxy-settings", () => ({
+vi.mock("@/ui/components/proxy-settings", () => ({
   ProxySettings: () => React.createElement("div", undefined, "proxy"),
 }));
 
-vi.mock("@/components/costs-panel", () => ({
+vi.mock("@/ui/components/costs-panel", () => ({
   CostsPanel: () => React.createElement("div", undefined, "costs"),
 }));
 
-vi.mock("@/components/icons", () => {
+vi.mock("@/ui/components/icons", () => {
   const Icon = () => React.createElement("span");
 
   return {
@@ -77,7 +77,7 @@ vi.mock("@/components/icons", () => {
   };
 });
 
-vi.mock("@/components/ui/dialog", () => ({
+vi.mock("@/ui/components/dialog", () => ({
   Dialog: ({
     children,
     onOpenChange,
@@ -95,7 +95,7 @@ vi.mock("@/components/ui/dialog", () => ({
     React.createElement("div", undefined, children),
 }));
 
-vi.mock("@/components/ui/tabs", () => ({
+vi.mock("@/ui/components/tabs", () => ({
   Tabs: ({ children }: { children: React.ReactNode; value?: string }) =>
     React.createElement("div", undefined, children),
   TabsList: ({ children }: { children: React.ReactNode }) =>
@@ -116,14 +116,14 @@ vi.mock("@/components/ui/tabs", () => ({
       : React.createElement("button", { className, type: "button", "data-value": value }, children),
 }));
 
-vi.mock("@/components/ui/toggle-group", () => ({
+vi.mock("@/ui/components/toggle-group", () => ({
   ToggleGroup: ({ children }: { children: React.ReactNode }) =>
     React.createElement("div", undefined, children),
   ToggleGroupItem: ({ children }: { children: React.ReactNode }) =>
     React.createElement("button", { type: "button" }, children),
 }));
 
-vi.mock("@/components/ui/sidebar", () => {
+vi.mock("@/ui/components/sidebar", () => {
   const Passthrough = ({ children }: { children: React.ReactNode }) =>
     React.createElement("div", undefined, children);
 
@@ -146,7 +146,7 @@ vi.mock("@/components/ui/sidebar", () => {
   };
 });
 
-vi.mock("@/components/ui/button", () => ({
+vi.mock("@/ui/components/button", () => ({
   Button: ({
     children,
     onClick,
@@ -159,7 +159,7 @@ vi.mock("@/components/ui/button", () => ({
   }) => React.createElement("button", { onClick, type: "button" }, children),
 }));
 
-vi.mock("@/components/ui/breadcrumb", () => {
+vi.mock("@/ui/components/breadcrumb", () => {
   const Passthrough = ({ children }: { children: React.ReactNode }) =>
     React.createElement("div", undefined, children);
 
@@ -172,7 +172,7 @@ vi.mock("@/components/ui/breadcrumb", () => {
   };
 });
 
-vi.mock("@/components/ui/item", () => {
+vi.mock("@/ui/components/item", () => {
   const Passthrough = ({ children }: { children: React.ReactNode }) =>
     React.createElement("div", undefined, children);
 
@@ -198,8 +198,8 @@ describe("settings dialog", () => {
   });
 
   it("does not close when dialog open state echoes true", async () => {
-    const { AppSettingsDialog } = await import("@/components/settings-dialog");
-    const { SettingsDialogProvider } = await import("@/components/settings-state");
+    const { AppSettingsDialog } = await import("@/ui/components/settings-dialog");
+    const { SettingsDialogProvider } = await import("@/ui/components/settings-state");
 
     render(
       React.createElement(

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { DEFAULT_PROXY_URL } from "@/proxy/settings";
+import { DEFAULT_PROXY_URL } from "@/pi/proxy/settings";
 
 const mocks = vi.hoisted(() => ({
   deleteSetting: vi.fn(),
@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   setSetting: vi.fn(),
 }));
 
-vi.mock("@firefly/db", () => ({
+vi.mock("@/db", () => ({
   deleteSetting: mocks.deleteSetting,
   getSetting: mocks.getSetting,
   setSetting: mocks.setSetting,
@@ -23,7 +23,7 @@ describe("proxy settings", () => {
   it("returns default proxy settings when storage is empty", async () => {
     mocks.getSetting.mockResolvedValue(undefined);
 
-    const { getProxyConfig } = await import("@/proxy/settings");
+    const { getProxyConfig } = await import("@/pi/proxy/settings");
 
     await expect(getProxyConfig()).resolves.toEqual({
       enabled: true,
@@ -32,7 +32,7 @@ describe("proxy settings", () => {
   });
 
   it("persists proxy settings locally", async () => {
-    const { setProxyConfig } = await import("@/proxy/settings");
+    const { setProxyConfig } = await import("@/pi/proxy/settings");
 
     await setProxyConfig({
       enabled: true,
@@ -45,7 +45,7 @@ describe("proxy settings", () => {
   });
 
   it("removes the stored proxy url when cleared", async () => {
-    const { setProxyConfig } = await import("@/proxy/settings");
+    const { setProxyConfig } = await import("@/pi/proxy/settings");
 
     await setProxyConfig({
       enabled: false,

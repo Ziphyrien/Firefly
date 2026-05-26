@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import type { SessionRunner } from "@/agent/session-runner";
-import type { SessionData, SessionLeaseRow } from "@/types/storage";
-import { createEmptyUsage } from "@/types/models";
+import type { SessionRunner } from "@/pi/agent/session-runner";
+import type { SessionData, SessionLeaseRow } from "@/db/types";
+import { createEmptyUsage } from "@/pi/types/models";
 
 const claimSessionLease = vi.fn(
   async (_sessionId: string): Promise<{ kind: "owned"; lease: SessionLeaseRow }> => ({
@@ -94,11 +94,11 @@ const WorkerBackedAgentHost = vi.fn(function WorkerBackedAgentHostMock(
   return currentHarness.runner;
 });
 
-vi.mock("@/agent/runtime-flags", () => ({
+vi.mock("@/pi/agent/runtime-flags", () => ({
   ENABLE_RUNTIME_WORKER: true,
 }));
 
-vi.mock("@/agent/worker-backed-agent-host", () => ({
+vi.mock("@/pi/agent/worker-backed-agent-host", () => ({
   WorkerBackedAgentHost,
 }));
 
@@ -111,19 +111,19 @@ vi.mock("@/db/session-leases", () => ({
   renewSessionLease,
 }));
 
-vi.mock("@/sessions/session-service", () => ({
+vi.mock("@/pi/sessions/session-service", () => ({
   loadSession,
 }));
 
-vi.mock("@/sessions/session-view-model", () => ({
+vi.mock("@/pi/sessions/session-view-model", () => ({
   loadSessionViewModel,
 }));
 
-vi.mock("@/sessions/session-notices", () => ({
+vi.mock("@/pi/sessions/session-notices", () => ({
   reconcileInterruptedSession,
 }));
 
-vi.mock("@/sessions/session-view-state", () => ({
+vi.mock("@/pi/sessions/session-view-state", () => ({
   deriveActiveSessionViewState: vi.fn(() => ({ kind: "idle" as const })),
   deriveRecoveryIntent: vi.fn(() => "none" as const),
 }));
@@ -159,7 +159,7 @@ describe("RuntimeClient", () => {
   it("registers freeze listeners during construction", async () => {
     const windowSpy = vi.spyOn(window, "addEventListener");
     const documentSpy = vi.spyOn(document, "addEventListener");
-    const { RuntimeClient } = await import("@/agent/runtime-client");
+    const { RuntimeClient } = await import("@/pi/agent/runtime-client");
 
     new RuntimeClient();
 
@@ -169,7 +169,7 @@ describe("RuntimeClient", () => {
   });
 
   it("forwards active-session model changes to the worker-backed runner", async () => {
-    const { RuntimeClient } = await import("@/agent/runtime-client");
+    const { RuntimeClient } = await import("@/pi/agent/runtime-client");
     const client = new RuntimeClient();
 
     await client.startTurn("session-1", "hello");
@@ -187,7 +187,7 @@ describe("RuntimeClient", () => {
   });
 
   it("disposes worker-backed runners on releaseAll and on turn completion", async () => {
-    const { RuntimeClient } = await import("@/agent/runtime-client");
+    const { RuntimeClient } = await import("@/pi/agent/runtime-client");
     const client = new RuntimeClient();
 
     await client.startTurn("session-1", "hello");

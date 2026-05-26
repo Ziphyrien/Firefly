@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import type { Message } from "@earendil-works/pi-ai";
-import { deleteAllLocalData, getSession, getSessionMessages, getSessionRuntime } from "@firefly/db";
-import type { AssistantMessage } from "@/types/chat";
-import type { SessionData } from "@/types/storage";
-import { createEmptyUsage } from "@/types/models";
+import { deleteAllLocalData, getSession, getSessionMessages, getSessionRuntime } from "@/db";
+import type { AssistantMessage } from "@/pi/types/chat";
+import type { SessionData } from "@/db/types";
+import { createEmptyUsage } from "@/pi/types/models";
 
 type MockAgentEvent =
   | {
@@ -52,7 +52,7 @@ const setModelMock = vi.fn((_model: { id: string; provider: string }): void => {
 const setThinkingLevelMock = vi.fn((_thinkingLevel: "medium" | "off" | "high"): void => {});
 const setToolsMock = vi.fn((_tools: Array<AgentTool>): void => {});
 
-vi.mock("@/auth/resolve-api-key", () => ({
+vi.mock("@/pi/auth/resolve-api-key", () => ({
   resolveApiKeyForProvider: vi.fn(async () => undefined),
 }));
 
@@ -186,7 +186,7 @@ describe("runtime worker", () => {
       });
     });
 
-    const worker = await import("@/agent/runtime-worker");
+    const worker = await import("@/pi/agent/runtime-worker");
 
     await worker.startTurn({
       ownerTabId: "tab-1",
@@ -255,7 +255,7 @@ describe("runtime worker", () => {
       });
     });
 
-    const worker = await import("@/agent/runtime-worker");
+    const worker = await import("@/pi/agent/runtime-worker");
 
     await worker.startTurn({
       ownerTabId: "tab-1",
@@ -287,7 +287,7 @@ describe("runtime worker", () => {
       agentState.isStreaming = true;
       await new Promise<void>(() => {});
     });
-    const worker = await import("@/agent/runtime-worker");
+    const worker = await import("@/pi/agent/runtime-worker");
     const session = createSession();
 
     const first = worker.startTurn({
@@ -319,7 +319,7 @@ describe("runtime worker", () => {
       agentState.isStreaming = true;
       await new Promise<void>(() => {});
     });
-    const worker = await import("@/agent/runtime-worker");
+    const worker = await import("@/pi/agent/runtime-worker");
 
     await worker.startTurn({
       ownerTabId: "tab-1",
@@ -343,7 +343,7 @@ describe("runtime worker", () => {
   });
 
   it("routes idle configuration changes through the worker", async () => {
-    const worker = await import("@/agent/runtime-worker");
+    const worker = await import("@/pi/agent/runtime-worker");
     const session = createSession();
 
     await worker.setModelSelection({
@@ -387,7 +387,7 @@ describe("runtime worker", () => {
       });
     });
 
-    const worker = await import("@/agent/runtime-worker");
+    const worker = await import("@/pi/agent/runtime-worker");
 
     await worker.startTurn({
       ownerTabId: "tab-1",
@@ -444,7 +444,7 @@ describe("runtime worker", () => {
       });
     });
 
-    const worker = await import("@/agent/runtime-worker");
+    const worker = await import("@/pi/agent/runtime-worker");
 
     await worker.startTurn({
       ownerTabId: "tab-1",

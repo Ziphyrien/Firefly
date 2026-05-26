@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { getRuntimeCommandErrorMessage } from "@/agent/runtime-command-errors";
+import { getRuntimeCommandErrorMessage } from "@/pi/agent/runtime-command-errors";
 
 describe("getRuntimeCommandErrorMessage", () => {
   it("maps Vercel security checkpoint errors to a specific toast", () => {

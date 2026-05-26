@@ -1,0 +1,94 @@
+import type { JsonValue } from "@/pi/types/common";
+import type { AssistantMessage, ChatMessage } from "@/pi/types/chat";
+import type { ProviderGroupId, ProviderId, ThinkingLevel, Usage } from "@/pi/types/models";
+
+export interface SessionData {
+  cost: number;
+  createdAt: string;
+  error?: string;
+  id: string;
+  isStreaming: boolean;
+  messageCount: number;
+  model: string;
+  preview: string;
+  provider: ProviderId;
+  providerGroup?: ProviderGroupId;
+  thinkingLevel: ThinkingLevel;
+  title: string;
+  updatedAt: string;
+  usage: Usage;
+}
+
+export type MessageStatus = "aborted" | "completed" | "error" | "streaming";
+
+export type MessageRow = ChatMessage & {
+  order: number;
+  sessionId: string;
+  status: MessageStatus;
+};
+
+export type SyncedSessionRow = SessionData & {
+  owner?: string;
+  realmId?: string;
+};
+
+export type SyncedMessageRow = MessageRow & {
+  owner?: string;
+  realmId?: string;
+};
+
+export interface SessionLeaseRow {
+  acquiredAt: string;
+  heartbeatAt: string;
+  ownerTabId: string;
+  ownerToken: string;
+  sessionId: string;
+}
+
+export type RuntimePhase = "idle" | "interrupted" | "running";
+
+export type RuntimeTerminalStatus = "aborted" | "completed" | "error";
+
+export type SessionRuntimeStatus =
+  | "aborted"
+  | "completed"
+  | "error"
+  | "idle"
+  | "interrupted"
+  | "streaming";
+
+export interface SessionRuntimeRow {
+  assistantMessageId?: string;
+  lastError?: string;
+  lastProgressAt?: string;
+  lastTerminalStatus?: RuntimeTerminalStatus;
+  ownerTabId?: string;
+  pendingToolCallOwners?: Record<string, string>;
+  phase?: RuntimePhase;
+  sessionId: string;
+  startedAt?: string;
+  status?: SessionRuntimeStatus;
+  streamMessage?: AssistantMessage;
+  turnId?: string;
+  updatedAt: string;
+}
+
+export interface SettingsRow {
+  key: string;
+  updatedAt: string;
+  value: JsonValue;
+}
+
+export interface ProviderKeyRecord {
+  provider: ProviderId;
+  updatedAt: string;
+  value: string;
+}
+
+export type DailyCostByProvider = Partial<Record<ProviderId, Record<string, number>>>;
+
+export interface DailyCostAggregate {
+  byProvider: DailyCostByProvider;
+  date: string;
+  total: number;
+}

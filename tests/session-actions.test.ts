@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import type { SessionData } from "@/types/storage";
-import { createEmptyUsage } from "@/types/models";
+import type { SessionData } from "@/db/types";
+import { createEmptyUsage } from "@/pi/types/models";
 
 const deleteSession = vi.fn(async () => {});
 const getSetting = vi.fn();
@@ -13,25 +13,25 @@ const getConnectedProviders = vi.fn(() => [] as string[]);
 const getPreferredProviderGroup = vi.fn(() => "openai-codex");
 const getVisibleProviderGroups = vi.fn(() => ["anthropic", "openai-codex"]);
 
-vi.mock("@firefly/db", () => ({
+vi.mock("@/db", () => ({
   deleteSession,
   getSetting,
   listProviderKeys,
   setSetting,
 }));
 
-vi.mock("@/sessions/session-service", () => ({
+vi.mock("@/pi/sessions/session-service", () => ({
   createSession,
   persistSessionSnapshot,
 }));
 
-vi.mock("@/agent/runtime-client", () => ({
+vi.mock("@/pi/agent/runtime-client", () => ({
   runtimeClient: {
     releaseSessionAndDrain,
   },
 }));
 
-vi.mock("@/models/catalog", () => ({
+vi.mock("@/pi/models/catalog", () => ({
   getCanonicalProvider: (providerGroup: string) => providerGroup,
   getConnectedProviders,
   getDefaultModelForGroup: () => ({
@@ -89,7 +89,7 @@ describe("session-actions", () => {
   });
 
   it("builds canonical session hrefs", async () => {
-    const { buildSessionHref } = await import("@/sessions/session-actions");
+    const { buildSessionHref } = await import("@/pi/sessions/session-actions");
 
     expect(buildSessionHref("session-1")).toBe("/chat/session-1");
   });
@@ -102,7 +102,7 @@ describe("session-actions", () => {
     getVisibleProviderGroups.mockReturnValue(["openai-codex"]);
     listProviderKeys.mockResolvedValue([{ provider: "openai-codex", value: "oauth-token" }]);
 
-    const { createSessionForChat } = await import("@/sessions/session-actions");
+    const { createSessionForChat } = await import("@/pi/sessions/session-actions");
     const session = await createSessionForChat();
 
     expect(createSession).toHaveBeenCalledWith({
@@ -118,7 +118,7 @@ describe("session-actions", () => {
     getVisibleProviderGroups.mockReturnValue([]);
     listProviderKeys.mockResolvedValue([]);
 
-    const { createSessionForChat } = await import("@/sessions/session-actions");
+    const { createSessionForChat } = await import("@/pi/sessions/session-actions");
 
     await expect(createSessionForChat()).rejects.toThrow("No AI provider configured");
     expect(createSession).not.toHaveBeenCalled();
@@ -126,7 +126,7 @@ describe("session-actions", () => {
   });
 
   it("persists last-used session settings", async () => {
-    const { persistLastUsedSessionSettings } = await import("@/sessions/session-actions");
+    const { persistLastUsedSessionSettings } = await import("@/pi/sessions/session-actions");
 
     await persistLastUsedSessionSettings({
       model: "gpt-5.1-codex-mini",
@@ -140,7 +140,7 @@ describe("session-actions", () => {
   });
 
   it("deletes the session and falls back to a sibling", async () => {
-    const { deleteSessionAndResolveNext } = await import("@/sessions/session-actions");
+    const { deleteSessionAndResolveNext } = await import("@/pi/sessions/session-actions");
 
     const sibling = buildSession("session-next");
     const result = await deleteSessionAndResolveNext({
@@ -156,7 +156,7 @@ describe("session-actions", () => {
   });
 
   it("clears the selection when no fallback session remains", async () => {
-    const { deleteSessionAndResolveNext } = await import("@/sessions/session-actions");
+    const { deleteSessionAndResolveNext } = await import("@/pi/sessions/session-actions");
 
     const result = await deleteSessionAndResolveNext({
       sessionId: "session-current",
@@ -177,7 +177,7 @@ describe("session-actions", () => {
         }),
     );
 
-    const { deleteSessionAndResolveNext } = await import("@/sessions/session-actions");
+    const { deleteSessionAndResolveNext } = await import("@/pi/sessions/session-actions");
     const deletePromise = deleteSessionAndResolveNext({
       sessionId: "session-current",
       siblingSessions: [buildSession("session-current")],

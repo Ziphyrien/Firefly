@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
-import { linkToolResults } from "@/agent/tool-result-linker";
-import type { AssistantMessage, ToolResultMessage } from "@/types/chat";
-import { createEmptyUsage } from "@/types/models";
+import { linkToolResults } from "@/pi/agent/tool-result-linker";
+import type { AssistantMessage, ToolResultMessage } from "@/pi/types/chat";
+import { createEmptyUsage } from "@/pi/types/models";
 
 function createAssistantMessage(params: {
   id: string;

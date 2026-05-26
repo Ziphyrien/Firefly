@@ -17,7 +17,7 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   };
 });
 
-vi.mock("@firefly/ui/components/chat", () => ({
+vi.mock("@/ui/components/chat", () => ({
   Chat: (props: { sessionId?: string }) => (
     <div data-testid="chat-view">{props.sessionId ? `session:${props.sessionId}` : "global"}</div>
   ),

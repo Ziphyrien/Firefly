@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
-import { createUserMessageFromTurnInput } from "@/agent/user-turn-input";
-import { getUserText } from "@/lib/chat-adapter";
+import { createUserMessageFromTurnInput } from "@/pi/agent/user-turn-input";
+import { getUserText } from "@/pi/lib/chat-adapter";
 
 function dataUrl(mediaType: string, value: string): string {
   return `data:${mediaType};base64,${btoa(value)}`;

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { describe, expect, it, vi } from "vite-plus/test";
 import { fireEvent, render, screen } from "@testing-library/react";
-import type { ChatMessage as ChatMessageType } from "@/types/chat";
+import type { ChatMessage as ChatMessageType } from "@/pi/types/chat";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
@@ -50,7 +50,7 @@ function buildStreamingAssistant(): ChatMessageType & { status: "streaming" } {
 
 describe("ChatMessage", () => {
   it("shows a streaming placeholder before the assistant emits text", async () => {
-    const { ChatMessage } = await import("@/components/chat-message");
+    const { ChatMessage } = await import("@/ui/components/chat-message");
 
     render(
       <ChatMessage
@@ -64,7 +64,7 @@ describe("ChatMessage", () => {
   });
 
   it("renders assistant error messages", async () => {
-    const { ChatMessage } = await import("@/components/chat-message");
+    const { ChatMessage } = await import("@/ui/components/chat-message");
 
     render(
       <ChatMessage
@@ -82,7 +82,7 @@ describe("ChatMessage", () => {
   });
 
   it("renders expandable HTML details for system messages", async () => {
-    const { ChatMessage } = await import("@/components/chat-message");
+    const { ChatMessage } = await import("@/ui/components/chat-message");
 
     render(
       <ChatMessage

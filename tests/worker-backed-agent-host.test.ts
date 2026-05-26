@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import type { SessionData } from "@/types/storage";
-import { createEmptyUsage } from "@/types/models";
+import type { SessionData } from "@/db/types";
+import { createEmptyUsage } from "@/pi/types/models";
 
 const workerStartTurn = vi.fn(async (_input: unknown): Promise<void> => {});
 const workerWaitForTurn = vi.fn(async (_sessionId: string) => ({
@@ -13,7 +13,7 @@ const workerSetModelSelection = vi.fn(async (_input: unknown): Promise<void> => 
 const workerSetThinkingLevel = vi.fn(async (_input: unknown): Promise<void> => {});
 const getCurrentTabId = vi.fn(() => "tab-1");
 
-vi.mock("@/agent/runtime-worker-client", () => ({
+vi.mock("@/pi/agent/runtime-worker-client", () => ({
   getRuntimeWorker: () => ({
     abortTurn: workerAbortTurn,
     disposeSession: workerDisposeSession,
@@ -24,7 +24,7 @@ vi.mock("@/agent/runtime-worker-client", () => ({
   }),
 }));
 
-vi.mock("@/agent/tab-id", () => ({
+vi.mock("@/pi/agent/tab-id", () => ({
   getCurrentTabId,
 }));
 
@@ -65,7 +65,7 @@ describe("WorkerBackedAgentHost", () => {
   });
 
   it("forwards high-level startTurn commands to the worker", async () => {
-    const { WorkerBackedAgentHost } = await import("@/agent/worker-backed-agent-host");
+    const { WorkerBackedAgentHost } = await import("@/pi/agent/worker-backed-agent-host");
     const host = new WorkerBackedAgentHost(createSession());
 
     await host.startTurn("hello");
@@ -88,7 +88,7 @@ describe("WorkerBackedAgentHost", () => {
   });
 
   it("forwards attachment turns as multimodal user messages", async () => {
-    const { WorkerBackedAgentHost } = await import("@/agent/worker-backed-agent-host");
+    const { WorkerBackedAgentHost } = await import("@/pi/agent/worker-backed-agent-host");
     const host = new WorkerBackedAgentHost(createSession());
 
     await host.startTurn({
@@ -128,7 +128,7 @@ describe("WorkerBackedAgentHost", () => {
   });
 
   it("forwards worker maintenance commands", async () => {
-    const { WorkerBackedAgentHost } = await import("@/agent/worker-backed-agent-host");
+    const { WorkerBackedAgentHost } = await import("@/pi/agent/worker-backed-agent-host");
     const host = new WorkerBackedAgentHost(createSession());
 
     await host.setModelSelection("openai-codex", "gpt-5.5");
@@ -158,7 +158,7 @@ describe("WorkerBackedAgentHost", () => {
         }),
     );
 
-    const { WorkerBackedAgentHost } = await import("@/agent/worker-backed-agent-host");
+    const { WorkerBackedAgentHost } = await import("@/pi/agent/worker-backed-agent-host");
     const host = new WorkerBackedAgentHost(createSession());
 
     const startPromise = host.startTurn("hello");

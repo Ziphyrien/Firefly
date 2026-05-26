@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
-import { normalizePersistedSessionState } from "@/sessions/session-state-normalization";
-import type { SessionData } from "@/types/storage";
+import { normalizePersistedSessionState } from "@/pi/sessions/session-state-normalization";
+import type { SessionData } from "@/db/types";
 
 function createSession(): SessionData {
   return {

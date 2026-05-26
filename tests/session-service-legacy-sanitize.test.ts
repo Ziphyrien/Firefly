@@ -1,14 +1,8 @@
 import { beforeEach, describe, expect, it } from "vite-plus/test";
-import { loadSessionWithMessages } from "@/sessions/session-service";
-import {
-  db,
-  deleteAllLocalData,
-  getSessionMessages,
-  getSessionRuntime,
-  putSession,
-} from "@firefly/db";
-import type { MessageRow, SessionData } from "@/types/storage";
-import { createEmptyUsage } from "@/types/models";
+import { loadSessionWithMessages } from "@/pi/sessions/session-service";
+import { db, deleteAllLocalData, getSessionMessages, getSessionRuntime, putSession } from "@/db";
+import type { MessageRow, SessionData } from "@/db/types";
+import { createEmptyUsage } from "@/pi/types/models";
 
 type LegacyMessageRow = Omit<MessageRow, "order"> & {
   order?: number;

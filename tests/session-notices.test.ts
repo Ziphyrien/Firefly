@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import type { SessionData } from "@/types/storage";
-import { createEmptyUsage } from "@/types/models";
+import type { SessionData } from "@/db/types";
+import { createEmptyUsage } from "@/pi/types/models";
 
 const deleteSessionLease = vi.fn(async (_sessionId: string): Promise<void> => {});
 const loadSessionLeaseState = vi.fn(async () => ({ kind: "none" as const }));
@@ -18,7 +18,7 @@ const deriveActiveSessionViewState = vi.fn(() => ({ kind: "ready" as const }));
 const deriveRecoveryIntent = vi.fn(() => "none" as const);
 const deriveRecoverySkipReason = vi.fn(() => "not-streaming" as const);
 
-vi.mock("@firefly/db", () => ({
+vi.mock("@/db", () => ({
   deleteSessionLease,
 }));
 
@@ -26,7 +26,7 @@ vi.mock("@/db/session-leases", () => ({
   loadSessionLeaseState,
 }));
 
-vi.mock("@/agent/runtime-worker-client", () => ({
+vi.mock("@/pi/agent/runtime-worker-client", () => ({
   getRuntimeWorker: () => ({
     appendSessionNotice: appendSessionNoticeCommand,
     reconcileInterruptedSession: reconcileInterruptedSessionCommand,
@@ -37,11 +37,11 @@ vi.mock("@/agent/runtime-worker-client", () => ({
   }),
 }));
 
-vi.mock("@/sessions/session-view-model", () => ({
+vi.mock("@/pi/sessions/session-view-model", () => ({
   loadSessionViewModel,
 }));
 
-vi.mock("@/sessions/session-view-state", () => ({
+vi.mock("@/pi/sessions/session-view-state", () => ({
   deriveActiveSessionViewState,
   deriveRecoveryIntent,
   deriveRecoverySkipReason,
@@ -92,7 +92,7 @@ describe("session-notices", () => {
   });
 
   it("forwards persisted notices to the worker", async () => {
-    const { appendSessionNotice } = await import("@/sessions/session-notices");
+    const { appendSessionNotice } = await import("@/pi/sessions/session-notices");
 
     await appendSessionNotice("session-1", new Error("boom"));
 
@@ -103,7 +103,7 @@ describe("session-notices", () => {
   });
 
   it("returns noop when recovery should not run", async () => {
-    const { reconcileInterruptedSession } = await import("@/sessions/session-notices");
+    const { reconcileInterruptedSession } = await import("@/pi/sessions/session-notices");
 
     const result = await reconcileInterruptedSession("session-1");
 
@@ -137,7 +137,7 @@ describe("session-notices", () => {
     deriveActiveSessionViewState.mockReturnValue({ kind: "recovering" });
     deriveRecoveryIntent.mockReturnValue("run-now");
 
-    const { reconcileInterruptedSession } = await import("@/sessions/session-notices");
+    const { reconcileInterruptedSession } = await import("@/pi/sessions/session-notices");
     const result = await reconcileInterruptedSession("session-1");
 
     expect(result).toEqual({

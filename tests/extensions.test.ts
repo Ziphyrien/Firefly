@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { Type } from "typebox";
-import { deleteAllLocalData } from "@firefly/db";
-import { githubExtensionPackage } from "@firefly/extensions/github";
-import { createExtensionRuntimeSnapshot } from "@firefly/pi/extensions/registry";
-import { getEnabledExtensionRuntime, getExtensionCatalog } from "@firefly/pi/extensions/runtime";
-import { setExtensionEnabled } from "@firefly/pi/extensions/settings";
-import type { ExtensionPackage, FireflyExtension } from "@firefly/pi/extensions/types";
+import { deleteAllLocalData } from "@/db";
+import { githubExtensionPackage } from "@/extensions/github";
+import { createExtensionRuntimeSnapshot } from "@/pi/extensions/registry";
+import { getEnabledExtensionRuntime, getExtensionCatalog } from "@/pi/extensions/runtime";
+import { setExtensionEnabled } from "@/pi/extensions/settings";
+import type { ExtensionPackage, FireflyExtension } from "@/pi/extensions/types";
 
 const customExtension: FireflyExtension = {
   manifest: {

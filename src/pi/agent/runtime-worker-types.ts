@@ -1,0 +1,37 @@
+import type { TurnEnvelope } from "@/pi/agent/turn-event-store";
+import type { ProviderGroupId, ThinkingLevel } from "@/pi/types/models";
+import type { SessionData } from "@/db";
+
+export type TurnCompletionStatus = "aborted" | "completed" | "error" | "interrupted";
+
+export type TurnCompletionResult = {
+  lastError?: string;
+  sessionId: string;
+  status: TurnCompletionStatus;
+};
+
+export type StartTurnInput = {
+  ownerTabId: string;
+  session: SessionData;
+  turn: TurnEnvelope;
+};
+
+export type ConfigureSessionInput = {
+  modelId: string;
+  providerGroup: ProviderGroupId;
+  sessionId: string;
+};
+
+export type SetThinkingLevelInput = {
+  sessionId: string;
+  thinkingLevel: ThinkingLevel;
+};
+
+export type AppendSessionNoticeInput = {
+  error: string;
+  sessionId: string;
+};
+
+export type ReconcileInterruptedSessionInput = {
+  sessionId: string;
+};

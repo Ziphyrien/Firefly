@@ -19,7 +19,7 @@ describe("runtime worker client", () => {
 
     Reflect.set(globalThis, "ComlinkWorker", constructorMock);
 
-    const { getRuntimeWorker } = await import("@/agent/runtime-worker-client");
+    const { getRuntimeWorker } = await import("@/pi/agent/runtime-worker-client");
 
     expect(constructorMock).not.toHaveBeenCalled();
 
@@ -46,7 +46,7 @@ describe("runtime worker client", () => {
       return {};
     });
 
-    const { getRuntimeWorkerIfAvailable } = await import("@/agent/runtime-worker-client");
+    const { getRuntimeWorkerIfAvailable } = await import("@/pi/agent/runtime-worker-client");
     expect(getRuntimeWorkerIfAvailable()).toBeUndefined();
 
     Reflect.set(globalThis, "ComlinkWorker", constructorMock);
@@ -56,11 +56,11 @@ describe("runtime worker client", () => {
 
   it("preserves direct ComlinkWorker syntax for vite-plugin-comlink", () => {
     const packageSource = readFileSync(
-      join(process.cwd(), "packages/pi/src/agent/runtime-worker-client.ts"),
+      join(process.cwd(), "src/pi/agent/runtime-worker-client.ts"),
       "utf8",
     );
     const webSource = readFileSync(
-      join(process.cwd(), "apps/web/src/agent/runtime-worker-client.ts"),
+      join(process.cwd(), "src/agent/runtime-worker-client.ts"),
       "utf8",
     );
 

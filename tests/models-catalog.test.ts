@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { getModels as getRegistryModels } from "@earendil-works/pi-ai";
-import { createEmptyUsage } from "@/types/models";
-import { serializeOAuthCredentials } from "@/auth/oauth-types";
+import { createEmptyUsage } from "@/pi/types/models";
+import { serializeOAuthCredentials } from "@/pi/auth/oauth-types";
 import {
   calculateCost,
   getCanonicalProvider,
@@ -15,8 +15,8 @@ import {
   getModelsForGroup,
   getProviderGroups,
   getVisibleProviderGroups,
-} from "@/models/catalog";
-import type { ProviderId } from "@/types/models";
+} from "@/pi/models/catalog";
+import type { ProviderId } from "@/pi/types/models";
 
 function firstRegistryModelId(provider: ProviderId): string {
   const first = (getRegistryModels(provider as never) as Array<{ id: string }>).at(0);

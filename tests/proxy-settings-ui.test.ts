@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 const getProxyConfig = vi.fn();
 const setProxyConfig = vi.fn();
 
-vi.mock("@/proxy/settings", () => ({
+vi.mock("@/pi/proxy/settings", () => ({
   DEFAULT_PROXY_URL: "https://proxy.mariozechner.at/proxy",
   getProxyConfig,
   setProxyConfig,
@@ -24,7 +24,7 @@ describe("proxy settings ui", () => {
       url: "https://proxy.example/proxy",
     });
 
-    const { ProxySettings } = await import("@/components/proxy-settings");
+    const { ProxySettings } = await import("@/ui/components/proxy-settings");
 
     render(React.createElement(ProxySettings));
 

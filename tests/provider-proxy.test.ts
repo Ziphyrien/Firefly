@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { shouldUseProxyForProvider } from "@/agent/provider-proxy";
+import { shouldUseProxyForProvider } from "@/pi/agent/provider-proxy";
 
 describe("provider-proxy", () => {
   it("proxies direct OpenAI-compatible providers", () => {

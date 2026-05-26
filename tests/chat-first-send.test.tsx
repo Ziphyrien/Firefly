@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { createEmptyUsage } from "@/types/models";
-import type { SessionData } from "@/types/storage";
+import { createEmptyUsage } from "@/pi/types/models";
+import type { SessionData } from "@/db/types";
 
 const useLiveQueryMock = vi.fn();
 const navigateMock = vi.fn(async () => {});
@@ -9,6 +9,19 @@ const useSearchMock = vi.fn(() => ({}));
 const startInitialTurnMock = vi.fn(async () => {});
 const createSessionForChatMock = vi.fn();
 const persistLastUsedSessionSettingsMock = vi.fn(async () => {});
+const connectedProviderKeys = [
+  {
+    provider: "openai-codex",
+    updatedAt: "2026-03-24T12:00:00.000Z",
+    value: JSON.stringify({
+      access: "access-token",
+      accountId: "account-1",
+      expires: Date.now() + 60_000,
+      providerId: "openai-codex",
+      refresh: "refresh-token",
+    }),
+  },
+];
 
 vi.mock("dexie-react-hooks", () => ({
   useLiveQuery: useLiveQueryMock,
@@ -19,7 +32,7 @@ vi.mock("@tanstack/react-router", () => ({
   useSearch: () => useSearchMock(),
 }));
 
-vi.mock("@/hooks/use-runtime-session", () => ({
+vi.mock("@/pi/hooks/use-runtime-session", () => ({
   useRuntimeSession: () => ({
     abort: vi.fn(),
     send: vi.fn(),
@@ -28,22 +41,22 @@ vi.mock("@/hooks/use-runtime-session", () => ({
   }),
 }));
 
-vi.mock("@/hooks/use-session-ownership", () => ({
+vi.mock("@/pi/hooks/use-session-ownership", () => ({
   useSessionOwnership: () => ({ kind: "owned" }),
 }));
 
-vi.mock("@/agent/runtime-client", () => ({
+vi.mock("@/pi/agent/runtime-client", () => ({
   runtimeClient: {
     hasActiveTurn: vi.fn(() => false),
     startInitialTurn: startInitialTurnMock,
   },
 }));
 
-vi.mock("@/sessions/session-notices", () => ({
+vi.mock("@/pi/sessions/session-notices", () => ({
   reconcileInterruptedSession: vi.fn(async () => ({ kind: "noop" })),
 }));
 
-vi.mock("@/sessions/session-actions", () => ({
+vi.mock("@/pi/sessions/session-actions", () => ({
   createSessionForChat: createSessionForChatMock,
   persistLastUsedSessionSettings: persistLastUsedSessionSettingsMock,
   resolveProviderDefaults: vi.fn(async () => ({
@@ -52,11 +65,17 @@ vi.mock("@/sessions/session-actions", () => ({
   })),
 }));
 
-vi.mock("@/components/chat-empty-state", () => ({
+vi.mock("@/ui/components/settings-state", () => ({
+  useSettingsDialog: () => ({
+    openSettings: vi.fn(),
+  }),
+}));
+
+vi.mock("@/ui/components/chat-empty-state", () => ({
   ChatEmptyState: () => <div data-testid="empty-state">empty</div>,
 }));
 
-vi.mock("@/components/chat-composer", () => ({
+vi.mock("@/ui/components/chat-composer", () => ({
   ChatComposer: ({ onSend }: { onSend: (input: { text: string }) => Promise<void> }) => (
     <button onClick={() => void onSend({ text: "hello" })} type="button">
       Send
@@ -64,25 +83,25 @@ vi.mock("@/components/chat-composer", () => ({
   ),
 }));
 
-vi.mock("@/components/ai-elements/conversation", () => ({
+vi.mock("@/ui/components/ai-elements/conversation", () => ({
   Conversation: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ConversationContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ConversationScrollButton: () => null,
 }));
 
-vi.mock("@/components/ui/progressive-blur", () => ({
+vi.mock("@/ui/components/progressive-blur", () => ({
   ProgressiveBlur: () => null,
 }));
 
-vi.mock("@/components/chat-message", () => ({
+vi.mock("@/ui/components/chat-message", () => ({
   ChatMessage: () => null,
 }));
 
-vi.mock("@/components/session-utility-actions", () => ({
+vi.mock("@/ui/components/session-utility-actions", () => ({
   SessionUtilityActions: () => null,
 }));
 
-vi.mock("@/components/chat-adapter", () => ({
+vi.mock("@/pi/lib/chat-adapter", () => ({
   getFoldedToolResultIds: () => new Set<string>(),
 }));
 
@@ -146,7 +165,7 @@ function mockChatQueries(options: {
       case 1:
         return options.defaults;
       default:
-        return [];
+        return connectedProviderKeys;
     }
   });
 }
@@ -172,7 +191,7 @@ describe("Chat first send", () => {
       loadedSessionState: { kind: "none" },
     });
 
-    const { Chat } = await import("@/components/chat");
+    const { Chat } = await import("@/ui/components/chat");
 
     render(<Chat />);
 
@@ -211,7 +230,7 @@ describe("Chat first send", () => {
       loadedSessionState: { kind: "none" },
     });
 
-    const { Chat } = await import("@/components/chat");
+    const { Chat } = await import("@/ui/components/chat");
 
     render(<Chat />);
 

@@ -1,13 +1,13 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vite-plus/test";
-import { ChatComposer } from "@/components/chat-composer";
+import { ChatComposer } from "@/ui/components/chat-composer";
 import { renderWithProviders } from "@/test/render-with-providers";
 import {
   SUPPORTED_ATTACHMENT_ACCEPT,
   SUPPORTED_ATTACHMENT_PICKER_TYPES,
-} from "@firefly/pi/agent/user-turn-input";
+} from "@/pi/agent/user-turn-input";
 
-vi.mock("@/components/chat-model-selector", () => ({
+vi.mock("@/ui/components/chat-model-selector", () => ({
   ChatModelSelector: () => <span data-testid="model-selector">Model</span>,
 }));
 

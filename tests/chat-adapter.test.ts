@@ -7,9 +7,14 @@ import {
   getAssistantToolCalls,
   getUserText,
   isToolResultMessage,
-} from "@/components/chat-adapter";
-import { createEmptyUsage } from "@/types/models";
-import type { AssistantMessage, ChatMessage, ToolResultMessage, UserMessage } from "@/types/chat";
+} from "@/pi/lib/chat-adapter";
+import { createEmptyUsage } from "@/pi/types/models";
+import type {
+  AssistantMessage,
+  ChatMessage,
+  ToolResultMessage,
+  UserMessage,
+} from "@/pi/types/chat";
 
 function userMessage(overrides: Partial<UserMessage> = {}): UserMessage {
   return {

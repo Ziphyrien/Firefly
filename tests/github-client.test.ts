@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
-vi.mock("../packages/extensions/src/github/token", () => ({
+vi.mock("@/extensions/github/token", () => ({
   getGithubPersonalAccessToken: vi.fn(async () => undefined),
 }));
 
@@ -32,7 +32,7 @@ describe("githubRequest", () => {
       });
     });
     vi.stubGlobal("fetch", fetchMock);
-    const { githubRequest } = await import("../packages/extensions/src/github/client");
+    const { githubRequest } = await import("@/extensions/github/client");
 
     const request = githubRequest("/user");
     const expectedRejection = expect(request).rejects.toThrow(

@@ -1,0 +1,193 @@
+import type { ProviderGroupId, ProviderId } from "@/pi/types/models";
+import type { SessionData } from "@/db";
+import { deleteSession, getSetting, listProviderKeys, setSetting } from "@/db";
+import { runtimeClient } from "@/pi/agent/runtime-client";
+import {
+  getCanonicalProvider,
+  getConnectedProviders,
+  getDefaultModelForGroup,
+  getDefaultProviderGroup,
+  getPreferredProviderGroup,
+  getProviderGroups,
+  getVisibleProviderGroups,
+  hasModelForGroup,
+  isProviderGroupId,
+  NO_CONFIGURED_PROVIDERS_MESSAGE,
+  SELECTED_PROVIDER_NOT_CONFIGURED_MESSAGE,
+} from "@/pi/models/catalog";
+import { createSession, persistSessionSnapshot } from "@/pi/sessions/session-service";
+
+function isProviderId(value: string): value is ProviderId {
+  return getProviderGroups().includes(value as ProviderGroupId);
+}
+
+function normalizeStoredProviderGroup(value: unknown): ProviderGroupId | undefined {
+  if (typeof value === "string" && isProviderGroupId(value)) {
+    return value;
+  }
+
+  return undefined;
+}
+
+function assertProviderGroupConfigured(
+  providerGroup: ProviderGroupId,
+  connectedProviders: Array<ProviderId>,
+): void {
+  const provider = getCanonicalProvider(providerGroup);
+
+  if (!connectedProviders.includes(provider)) {
+    throw new Error(
+      connectedProviders.length === 0
+        ? NO_CONFIGURED_PROVIDERS_MESSAGE
+        : SELECTED_PROVIDER_NOT_CONFIGURED_MESSAGE,
+    );
+  }
+}
+
+function normalizeVisibleSession(
+  session: SessionData,
+  visibleProviderGroups: Array<ProviderGroupId>,
+): SessionData {
+  const fallbackProviderGroup =
+    visibleProviderGroups[0] ?? getPreferredProviderGroup([] as Array<ProviderId>);
+  const rawGroup = session.providerGroup ?? session.provider;
+  const currentProviderGroup = normalizeStoredProviderGroup(rawGroup) ?? fallbackProviderGroup;
+  const providerGroup = visibleProviderGroups.includes(currentProviderGroup)
+    ? currentProviderGroup
+    : fallbackProviderGroup;
+  const model = hasModelForGroup(providerGroup, session.model)
+    ? session.model
+    : getDefaultModelForGroup(providerGroup).id;
+
+  if (providerGroup === currentProviderGroup && model === session.model) {
+    return session;
+  }
+
+  return {
+    ...session,
+    model,
+    provider: getCanonicalProvider(providerGroup),
+    providerGroup,
+  };
+}
+
+export async function persistVisibleSessionSelection(
+  session: SessionData,
+  visibleProviderGroups: Array<ProviderGroupId>,
+): Promise<SessionData> {
+  const normalized = normalizeVisibleSession(session, visibleProviderGroups);
+
+  if (
+    normalized.providerGroup !== session.providerGroup ||
+    normalized.provider !== session.provider ||
+    normalized.model !== session.model
+  ) {
+    await persistSessionSnapshot(normalized);
+  }
+
+  return normalized;
+}
+
+export async function resolveProviderDefaults(): Promise<{
+  model: string;
+  providerGroup: ProviderGroupId;
+  visibleProviderGroups: Array<ProviderGroupId>;
+}> {
+  const providerKeys = await listProviderKeys();
+  const connectedProviders = getConnectedProviders(providerKeys);
+  const visibleProviderGroups = getVisibleProviderGroups(connectedProviders);
+  const fallbackProviderGroup = getPreferredProviderGroup(connectedProviders);
+  const storedProviderGroup = normalizeStoredProviderGroup(
+    await getSetting("last-used-provider-group"),
+  );
+  const storedProvider = await getSetting("last-used-provider");
+  const providerGroup =
+    storedProviderGroup && visibleProviderGroups.includes(storedProviderGroup)
+      ? storedProviderGroup
+      : typeof storedProvider === "string" && isProviderId(storedProvider)
+        ? (() => {
+            const nextProviderGroup = getDefaultProviderGroup(storedProvider);
+            return visibleProviderGroups.includes(nextProviderGroup)
+              ? nextProviderGroup
+              : fallbackProviderGroup;
+          })()
+        : fallbackProviderGroup;
+  const storedModel = await getSetting("last-used-model");
+  const model =
+    typeof storedModel === "string" && hasModelForGroup(providerGroup, storedModel)
+      ? storedModel
+      : getDefaultModelForGroup(providerGroup).id;
+
+  return { model, providerGroup, visibleProviderGroups };
+}
+
+export async function persistLastUsedSessionSettings(
+  session: Pick<SessionData, "model" | "provider" | "providerGroup">,
+): Promise<void> {
+  await Promise.all([
+    setSetting("last-used-model", session.model),
+    setSetting("last-used-provider", session.provider),
+    setSetting("last-used-provider-group", session.providerGroup ?? session.provider),
+  ]);
+}
+
+export type SessionCreationBase = Pick<
+  SessionData,
+  "model" | "provider" | "providerGroup" | "thinkingLevel"
+>;
+
+export function buildSessionHref(sessionId: string): string {
+  return `/chat/${encodeURIComponent(sessionId)}`;
+}
+
+export async function createSessionForChat(base?: SessionCreationBase): Promise<SessionData> {
+  const providerKeys = await listProviderKeys();
+  const connectedProviders = getConnectedProviders(providerKeys);
+
+  if (!base) {
+    const { model, providerGroup, visibleProviderGroups } = await resolveProviderDefaults();
+    assertProviderGroupConfigured(providerGroup, connectedProviders);
+    return normalizeVisibleSession(
+      createSession({
+        model,
+        providerGroup,
+      }),
+      visibleProviderGroups,
+    );
+  }
+
+  const providerGroup = base.providerGroup ?? getDefaultProviderGroup(base.provider);
+  assertProviderGroupConfigured(providerGroup, connectedProviders);
+
+  const session = createSession({
+    model: base.model,
+    providerGroup,
+    thinkingLevel: base.thinkingLevel,
+  });
+
+  await persistSessionSnapshot(session);
+  return session;
+}
+
+export async function deleteSessionAndResolveNext(params: {
+  sessionId: string;
+  siblingSessions: Array<SessionData>;
+}): Promise<{ nextSessionId?: string }> {
+  try {
+    await runtimeClient.releaseSessionAndDrain(params.sessionId);
+  } catch {
+    // Ignore runtime release failures during local session deletion.
+  }
+
+  await deleteSession(params.sessionId);
+
+  const fallback = params.siblingSessions.find((session) => session.id !== params.sessionId);
+
+  if (fallback) {
+    return {
+      nextSessionId: fallback.id,
+    };
+  }
+
+  return { nextSessionId: undefined };
+}

@@ -29,7 +29,7 @@ describe("popup oauth flow", () => {
     });
     window.open = vi.fn(() => window);
 
-    const { runPopupOAuthFlow } = await import("@/auth/popup-flow");
+    const { runPopupOAuthFlow } = await import("@/pi/auth/popup-flow");
     const promise = runPopupOAuthFlow("https://example.com/oauth");
     const callbackUrl = `${window.location.origin}/auth/callback?code=code-1&state=state-1`;
 
@@ -57,7 +57,7 @@ describe("popup oauth flow", () => {
     });
     window.open = vi.fn(() => window);
 
-    const { runPopupOAuthFlow } = await import("@/auth/popup-flow");
+    const { runPopupOAuthFlow } = await import("@/pi/auth/popup-flow");
     const promise = runPopupOAuthFlow("https://example.com/oauth");
     const assertion = expect(promise).rejects.toThrow(
       "OAuth popup was closed before completing login",
